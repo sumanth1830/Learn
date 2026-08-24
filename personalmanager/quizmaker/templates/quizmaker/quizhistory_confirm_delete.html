@@ -1,0 +1,39 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Delete quiz attempt — Marginal{% endblock %}
+{% block nav_progress %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="card confirm-card">
+    <div class="confirm-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2>Delete this attempt?</h2>
+    <p class="text-soft">This can't be undone — the score record will be gone for good.</p>
+
+    <div class="confirm-preview">
+      {{ object.quiz.quiz_topic }} — {{ object.num_correct }}/{{ object.total_attempted }} correct
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="confirm-actions">
+        {# Once quiz:quizhistory_list exists, swap the href below for {% url 'quiz:quizhistory_list' %} #}
+        <a href="#" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-danger">Delete attempt</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

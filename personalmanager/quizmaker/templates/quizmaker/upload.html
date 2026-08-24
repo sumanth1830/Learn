@@ -1,0 +1,166 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}New quiz — Marginal{% endblock %}
+{% block nav_upload %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/upload.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="upload-hero">
+    <span class="eyebrow">New quiz</span>
+    <h1>Turn your notes into a <span class="highlight">quiz<svg viewBox="0 0 120 20" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 14.5C2 14.5 20 8 60 9C90 9.7 110 13 118 11.5" stroke="currentColor" stroke-width="11" stroke-linecap="round"/></svg></span></h1>
+    <p>Upload a PDF and we'll pull questions straight from it — so you find out what you actually know before the exam does.</p>
+  </div>
+
+  <form class="card upload-card" method="post" enctype="multipart/form-data" action="{% url 'quiz:generate' %}" novalidate>
+    {% csrf_token %}
+
+    <div class="field">
+      <label class="field-label" for="pdf-upload">Your document</label>
+
+      <label class="dropzone" id="dropzone" for="pdf-upload" tabindex="0">
+        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M12 12v6M9 15l3-3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="dropzone-title">Drop your PDF here, or click to browse</div>
+        <div class="dropzone-hint">One file, up to 25MB</div>
+        <input type="file" id="pdf-upload" name="pdf_file" accept="application/pdf" required>
+      </label>
+
+      <div class="dropzone-file" id="dropzoneFile">
+        <div class="dropzone-file-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="dropzone-file-meta">
+          <div class="dropzone-file-name" id="dropzoneFileName">filename.pdf</div>
+          <div class="dropzone-file-size" id="dropzoneFileSize">—</div>
+        </div>
+        <button type="button" class="dropzone-file-remove" id="dropzoneFileRemove" aria-label="Remove file">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="upload-options">
+      <div class="field">
+        <span class="field-label">Difficulty</span>
+        <div class="segmented" role="radiogroup" aria-label="Difficulty">
+          <input type="radio" id="diff-easy" name="difficulty" value="easy" checked>
+          <label for="diff-easy"><span class="dot dot-easy"></span> Easy</label>
+
+          <input type="radio" id="diff-medium" name="difficulty" value="medium">
+          <label for="diff-medium"><span class="dot dot-medium"></span> Medium</label>
+
+          <input type="radio" id="diff-hard" name="difficulty" value="hard">
+          <label for="diff-hard"><span class="dot dot-hard"></span> Hard</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="question-count">Questions</label>
+        <div class="select-wrap">
+          <select class="select" id="question-count" name="question_count">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-submit">
+      <button type="submit" class="btn btn-block" id="generateBtn" disabled>
+        Generate quiz
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="upload-note">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span>Generating usually takes under a minute — we'll bring you to your quiz as soon as it's ready.</span>
+      </div>
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('pdf-upload');
+    const fileRow = document.getElementById('dropzoneFile');
+    const fileName = document.getElementById('dropzoneFileName');
+    const fileSize = document.getElementById('dropzoneFileSize');
+    const removeBtn = document.getElementById('dropzoneFileRemove');
+    const generateBtn = document.getElementById('generateBtn');
+
+    function formatSize(bytes) {
+      if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function showFile(file) {
+      fileName.textContent = file.name;
+      fileSize.textContent = formatSize(file.size);
+      fileRow.classList.add('is-visible');
+      generateBtn.disabled = false;
+    }
+
+    function clearFile() {
+      fileInput.value = '';
+      fileRow.classList.remove('is-visible');
+      generateBtn.disabled = true;
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) showFile(fileInput.files[0]);
+    });
+
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearFile();
+    });
+
+    ['dragenter', 'dragover'].forEach(evt =>
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('is-dragover');
+      })
+    );
+
+    ['dragleave', 'drop'].forEach(evt =>
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('is-dragover');
+      })
+    );
+
+    dropzone.addEventListener('drop', (e) => {
+      const dropped = e.dataTransfer.files;
+      if (dropped.length) {
+        fileInput.files = dropped;
+        showFile(dropped[0]);
+      }
+    });
+  })();
+</script>
+{% endblock %}

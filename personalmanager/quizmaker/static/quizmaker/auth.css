@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Auth pages: login, signup
+   ========================================================================== */
+
+.auth-hero-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.auth-hero-mark svg { width: 24px; height: 24px; }
+
+/* Non-field error banner (bad credentials, etc.) */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-error-soft);
+  color: var(--color-error);
+  font-size: var(--step--1);
+  font-weight: 600;
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+.alert svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* Password field with show/hide toggle */
+.password-field { position: relative; }
+
+.password-field .text-input { padding-right: 44px; }
+
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-ink-faint);
+  cursor: pointer;
+  border-radius: 7px;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.password-toggle:hover { color: var(--color-primary-dark); background: var(--color-primary-soft); }
+
+.password-toggle svg { width: 18px; height: 18px; display: block; }
+
+.password-toggle .eye-slash { opacity: 0; transition: opacity 0.15s var(--ease); }
+.password-toggle.is-visible .eye-slash { opacity: 1; }
+
+/* Forgot-password row under the password field */
+.auth-forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.auth-forgot a {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-ink-faint);
+  text-decoration: none;
+}
+
+.auth-forgot a:hover { color: var(--color-primary-dark); }
+
+/* Switch link under the form: "Don't have an account? Sign up" */
+.auth-switch {
+  text-align: center;
+  margin-top: 26px;
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
+}
+
+.auth-switch a {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  text-decoration: none;
+  border-bottom: 1.5px solid var(--color-border-strong);
+  transition: border-color 0.15s var(--ease);
+}
+
+.auth-switch a:hover { border-color: var(--color-primary); }
+
+@media (max-width: 480px) {
+  .form-card { padding: 28px 22px; }
+}

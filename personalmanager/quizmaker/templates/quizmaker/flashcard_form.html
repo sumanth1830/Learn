@@ -1,0 +1,69 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit flashcard{% else %}New flashcard{% endif %} — Marginal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="card form-card">
+    <div class="form-header">
+      <span class="eyebrow">{% if form.instance.pk %}Edit flashcard{% else %}New flashcard{% endif %}</span>
+      <h1>{% if form.instance.pk %}Update this card{% else %}Add a flashcard{% endif %}</h1>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% for field in form %}
+        {% if field.name != "creator" %}
+        <div class="field">
+          <label class="field-label" for="flashcard-{{ field.html_name }}">{{ field.label }}</label>
+
+          {% if field.name == "explanation" %}
+            <textarea
+              class="textarea-input"
+              id="flashcard-{{ field.html_name }}"
+              name="{{ field.html_name }}"
+              {% if field.field.required %}required{% endif %}
+            >{{ field.value|default:"" }}</textarea>
+          {% else %}
+            <input
+              class="text-input"
+              type="text"
+              id="flashcard-{{ field.html_name }}"
+              name="{{ field.html_name }}"
+              value="{{ field.value|default:"" }}"
+              {% if field.field.required %}required{% endif %}
+              {% if field.name == "front_text" %}maxlength="100"{% endif %}
+              {% if field.name == "topic" %}maxlength="50"{% endif %}
+              {% if field.name == "hint" %}maxlength="100"{% endif %}
+            >
+          {% endif %}
+
+          {% if field.help_text %}
+            <span class="field-hint">{{ field.help_text }}</span>
+          {% endif %}
+          {% for error in field.errors %}
+            <span class="field-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn">
+          {% if form.instance.pk %}Save changes{% else %}Create flashcard{% endif %}
+        </button>
+        {# Once quiz:flashcard_list exists, swap the href below for {% url 'quiz:flashcard_list' %} #}
+        <a href="#" class="link-quiet">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Marginal — Quiz yourself from your own notes{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Karla:wght@400;500;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'quizmaker/base.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="page">
+    <header class="site-header">
+      <div class="container">
+        <a href="{% url 'quiz:home' %}" class="wordmark">
+          <span class="wordmark-mark">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4.5C2 3.67 2.67 3 3.5 3H9L14 8V11.5C14 12.33 13.33 13 12.5 13H3.5C2.67 13 2 12.33 2 11.5V4.5Z" fill="white" fill-opacity="0.9"/>
+              <path d="M9 3V7C9 7.55 9.45 8 10 8H14" stroke="#4B7566" stroke-width="1.2"/>
+            </svg>
+          </span>
+          Marginal
+        </a>
+
+        <div class="header-right">
+          <nav class="site-nav">
+            <a href="{% url 'quiz:home' %}" class="{% block nav_home %}{% endblock %}">Home</a>
+            {# Once quiz:upload exists, swap the href below for {% url 'quiz:upload' %} #}
+            <a href="#" class="nav-soon {% block nav_upload %}{% endblock %}" aria-disabled="true" title="Coming soon">New quiz</a>
+            {# Once quiz:quizhistory_list exists, swap the href below for {% url 'quiz:quizhistory_list' %} #}
+            <a href="#" class="nav-soon {% block nav_progress %}{% endblock %}" aria-disabled="true" title="Coming soon">Progress</a>
+          </nav>
+
+          <div class="site-nav-divider"></div>
+
+          <div class="auth-nav">
+            {% if user.is_authenticated %}
+              <span class="nav-user">{{ user.username }}</span>
+              <form method="post" action="{% url 'quiz:logout' %}" class="nav-logout-form">
+                {% csrf_token %}
+                <button type="submit" class="link-quiet">Log out</button>
+              </form>
+            {% else %}
+              <a href="{% url 'quiz:login' %}" class="link-quiet">Log in</a>
+              <a href="{% url 'quiz:signup' %}" class="btn btn-sm">Sign up</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span class="wordmark" style="font-size: var(--step-0);">
+          <span class="wordmark-mark" style="width: 20px; height: 20px; border-radius: 5px;">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 4.5C2 3.67 2.67 3 3.5 3H9L14 8V11.5C14 12.33 13.33 13 12.5 13H3.5C2.67 13 2 12.33 2 11.5V4.5Z" fill="white" fill-opacity="0.9"/>
+              <path d="M9 3V7C9 7.55 9.45 8 10 8H14" stroke="#4B7566" stroke-width="1.2"/>
+            </svg>
+          </span>
+          Marginal
+        </span>
+        <span class="footer-tagline">Quiz yourself from your own notes.</span>
+      </div>
+    </footer>
+  </div>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

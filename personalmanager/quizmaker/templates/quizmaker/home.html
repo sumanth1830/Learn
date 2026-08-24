@@ -1,0 +1,123 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Marginal — Turn your notes into a quiz{% endblock %}
+{% block nav_home %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Quizmaker &amp; tracker</span>
+      <h1>Study from what you've already <span class="highlight">highlighted<svg viewBox="0 0 200 20" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 14.5C2 14.5 40 8 100 9C150 9.7 180 13 198 11.5" stroke="currentColor" stroke-width="11" stroke-linecap="round"/></svg></span></h1>
+      <p>Upload a PDF — lecture notes, a chapter, a slide deck — and Marginal turns it into a quiz at your level, then tracks exactly which parts still need work.</p>
+
+      <div class="hero-actions">
+        {# Once quiz:upload exists, swap the href below for {% url 'quiz:upload' %} #}
+        <a href="#" class="btn" aria-disabled="true" title="Coming soon">
+          Upload a PDF
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="#how-it-works" class="link-quiet">See how it works</a>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-visual-stack">
+        <div class="mock-card mock-source">
+          <div class="mock-line"></div>
+          <div class="mock-line"></div>
+          <div class="mock-line"></div>
+          <div class="mock-line"></div>
+        </div>
+
+        <div class="hero-visual-connector">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4v16M5 13l7 7 7-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="mock-card mock-quiz">
+          <span class="mock-quiz-eyebrow">Question 4 of 10</span>
+          <div class="mock-quiz-q">Which structure regulates gene expression?</div>
+          <div class="mock-option is-correct">
+            <span class="mock-option-ring"></span> Promoter region
+          </div>
+          <div class="mock-option">
+            <span class="mock-option-ring"></span> Ribosome
+          </div>
+          <div class="mock-option">
+            <span class="mock-option-ring"></span> Golgi body
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="steps-section" id="how-it-works">
+    <div class="steps-heading">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps, no flashcards to write</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">01</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Upload</h3>
+        <p>Drop in any PDF — lecture notes, a textbook chapter, a slide deck. No formatting or cleanup needed.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">02</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Get quizzed</h3>
+        <p>We generate multiple-choice questions straight from the content, set to the difficulty you choose.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-number">03</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19V5M4 19h16M8 15v-4M13 15V8M18 15v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Track your progress</h3>
+        <p>See exactly which answers you missed, with the original passage right there — and watch your gaps close over time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>Ready to find your gaps?</h2>
+    <p>Your first quiz is a PDF away.</p>
+    {# Once quiz:upload exists, swap the href below for {% url 'quiz:upload' %} #}
+    <a href="#" class="btn" aria-disabled="true" title="Coming soon">
+      Upload a PDF
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

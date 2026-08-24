@@ -1,0 +1,115 @@
+{% extends "../quizmaker/base.html" %}
+{% load static %}
+
+{% block title %}Sign up — Marginal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="card form-card">
+    <div class="auth-hero-mark">
+      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 4.5C2 3.67 2.67 3 3.5 3H9L14 8V11.5C14 12.33 13.33 13 12.5 13H3.5C2.67 13 2 12.33 2 11.5V4.5Z" fill="white" fill-opacity="0.9"/>
+        <path d="M9 3V7C9 7.55 9.45 8 10 8H14" stroke="white" stroke-width="1.2"/>
+      </svg>
+    </div>
+
+    <div class="form-header">
+      <span class="eyebrow">Get started</span>
+      <h1>Create your account</h1>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="alert" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% for field in form %}
+        {% if field.field.widget.input_type == "password" %}
+        <div class="field">
+          <label class="field-label" for="auth-{{ field.html_name }}">{{ field.label }}</label>
+          <div class="password-field">
+            <input
+              class="text-input"
+              type="password"
+              id="auth-{{ field.html_name }}"
+              name="{{ field.html_name }}"
+              {% if field.field.required %}required{% endif %}
+            >
+            <button type="button" class="password-toggle" data-toggle-for="auth-{{ field.html_name }}" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
+                <path class="eye-slash" d="M2 2l20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          {% if field.help_text %}
+            <span class="field-hint">{{ field.help_text }}</span>
+          {% endif %}
+          {% for error in field.errors %}
+            <span class="field-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="field">
+          <label class="field-label" for="auth-{{ field.html_name }}">{{ field.label }}</label>
+          <input
+            class="text-input"
+            type="{{ field.field.widget.input_type|default:"text" }}"
+            id="auth-{{ field.html_name }}"
+            name="{{ field.html_name }}"
+            value="{{ field.value|default:"" }}"
+            {% if field.field.required %}required{% endif %}
+          >
+          {% if field.help_text %}
+            <span class="field-hint">{{ field.help_text }}</span>
+          {% endif %}
+          {% for error in field.errors %}
+            <span class="field-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      <div class="form-actions" style="flex-direction: column; align-items: stretch; margin-top: 26px;">
+        <button type="submit" class="btn btn-block">Create account</button>
+      </div>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account? <a href="{% url 'quiz:login' %}">Log in</a>
+    </p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.password-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById(btn.dataset.toggleFor);
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.classList.toggle('is-visible', !showing);
+      btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+  });
+</script>
+{% endblock %}
