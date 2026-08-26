@@ -30,6 +30,8 @@
     {% for attempt in quizhistory_list %}
     {% widthratio attempt.num_correct attempt.total_attempted 100 as pct_correct %}
     <div class="history-row">
+      <a href="{% url 'quiz:quiz_results' pk=attempt.pk %}" class="history-row-link" aria-label="View results for {{ attempt.quiz.quiz_name }}"></a>
+
       <div class="history-row-main">
         <div class="history-row-topic">{{ attempt.quiz.quiz_topic }}</div>
         <div class="history-row-date">{{ attempt.created_at|date:"M j, Y" }}</div>

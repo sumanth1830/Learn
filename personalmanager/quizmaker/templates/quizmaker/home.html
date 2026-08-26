@@ -18,8 +18,7 @@
       <p>Upload a PDF — lecture notes, a chapter, a slide deck — and Marginal turns it into a quiz at your level, then tracks exactly which parts still need work.</p>
 
       <div class="hero-actions">
-        {# Once quiz:upload exists, swap the href below for {% url 'quiz:upload' %} #}
-        <a href="#" class="btn" aria-disabled="true" title="Coming soon">
+        <a href="{% url 'quiz:quiz_create' %}" class="btn">
           Upload a PDF
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -108,8 +107,7 @@
   <section class="cta-band">
     <h2>Ready to find your gaps?</h2>
     <p>Your first quiz is a PDF away.</p>
-    {# Once quiz:upload exists, swap the href below for {% url 'quiz:upload' %} #}
-    <a href="#" class="btn" aria-disabled="true" title="Coming soon">
+    <a href="{% url 'quiz:quiz_create' %}" class="btn">
       Upload a PDF
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

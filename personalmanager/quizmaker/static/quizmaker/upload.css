@@ -138,6 +138,24 @@
 
 .upload-submit { margin-top: 32px; }
 
+/* Two-column field pairs (topic + exam, difficulty + question count) */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* The generic "form .field + .field" top-margin rule (from manage.css)
+   would also apply between the two fields sitting side-by-side in a row —
+   grid-gap already handles that spacing, so cancel it here. */
+.field-row .field + .field { margin-top: 0; }
+
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin-block: 28px 0;
+}
+
 .upload-note {
   display: flex;
   align-items: flex-start;

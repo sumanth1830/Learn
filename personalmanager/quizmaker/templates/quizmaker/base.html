@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-{% load static %}
 <html lang="en">
+{% load static %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,8 +30,7 @@
         <div class="header-right">
           <nav class="site-nav">
             <a href="{% url 'quiz:home' %}" class="{% block nav_home %}{% endblock %}">Home</a>
-            {# Once quiz:upload exists, swap the href below for {% url 'quiz:upload' %} #}
-            <a href="#" class="nav-soon {% block nav_upload %}{% endblock %}" aria-disabled="true" title="Coming soon">New quiz</a>
+            <a href="{% url 'quiz:quiz_create' %}" class="{% block nav_upload %}{% endblock %}">New quiz</a>
             {# Once quiz:quizhistory_list exists, swap the href below for {% url 'quiz:quizhistory_list' %} #}
             <a href="#" class="nav-soon {% block nav_progress %}{% endblock %}" aria-disabled="true" title="Coming soon">Progress</a>
           </nav>

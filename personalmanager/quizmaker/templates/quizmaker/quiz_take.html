@@ -1,0 +1,156 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}{{ quiz.quiz_name }} — Marginal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/quiz_take.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container quiz-shell">
+
+  <div class="quiz-header">
+    <div class="quiz-meta">
+      <span class="badge">{{ quiz.quiz_topic }}</span>
+      <span class="badge">{{ quiz.get_difficulty_display }}</span>
+    </div>
+    <h1 class="quiz-title">{{ quiz.quiz_name }}</h1>
+
+    <div class="quiz-progress-row">
+      <span class="quiz-progress-label" id="quizProgressLabel">Question 1 of {{ quiz.questions.count }}</span>
+    </div>
+    <div class="quiz-progress-track">
+      <div class="quiz-progress-fill" id="quizProgressFill"></div>
+    </div>
+  </div>
+
+  <form class="card" method="post" id="quizForm" style="padding: 32px 36px;">
+    {% csrf_token %}
+
+    {% for question in quiz.questions.all %}
+    <div class="quiz-slide {% if forloop.first %}is-active{% endif %}" data-slide-index="{{ forloop.counter0 }}">
+      <div class="quiz-question-text">{{ question.question_text }}</div>
+
+      <div class="quiz-options" role="radiogroup" aria-label="Answer options">
+        {% for answer in question.answers.all %}
+          {% if answer.is_option %}
+          <label class="quiz-option">
+            <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}" required>
+            <span class="quiz-option-ring"></span>
+            <span class="quiz-option-text">{{ answer.answer_text }}</span>
+          </label>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="quiz-nav">
+      <button type="button" class="btn btn-ghost" id="quizPrevBtn" style="visibility: hidden;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Previous
+      </button>
+
+      <span class="quiz-nav-hint" id="quizNavHint">Choose an answer to continue</span>
+
+      <button type="button" class="btn" id="quizNextBtn" disabled>
+        Next
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const slides = Array.from(document.querySelectorAll('.quiz-slide'));
+    const total = slides.length;
+    let current = 0;
+
+    const progressFill = document.getElementById('quizProgressFill');
+    const progressLabel = document.getElementById('quizProgressLabel');
+    const prevBtn = document.getElementById('quizPrevBtn');
+    const nextBtn = document.getElementById('quizNextBtn');
+    const navHint = document.getElementById('quizNavHint');
+    const form = document.getElementById('quizForm');
+
+    function currentSlideAnswered() {
+      const slide = slides[current];
+      return slide.querySelector('input[type="radio"]:checked') !== null;
+    }
+
+    function updateOptionStyles(slide) {
+      slide.querySelectorAll('.quiz-option').forEach((opt) => {
+        const input = opt.querySelector('input[type="radio"]');
+        opt.classList.toggle('is-selected', input.checked);
+      });
+    }
+
+    function render() {
+      slides.forEach((slide, i) => slide.classList.toggle('is-active', i === current));
+
+      progressFill.style.width = `${((current + 1) / total) * 100}%`;
+      progressLabel.textContent = `Question ${current + 1} of ${total}`;
+
+      prevBtn.style.visibility = current === 0 ? 'hidden' : 'visible';
+
+      const answered = currentSlideAnswered();
+      nextBtn.disabled = !answered;
+      navHint.style.visibility = answered ? 'hidden' : 'visible';
+
+      if (current === total - 1) {
+        nextBtn.textContent = '';
+        const label = document.createElement('span');
+        label.textContent = 'Finish quiz';
+        nextBtn.appendChild(label);
+        nextBtn.type = 'submit';
+      } else {
+        nextBtn.type = 'button';
+        nextBtn.innerHTML = `Next
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`;
+      }
+    }
+
+    slides.forEach((slide) => {
+      slide.querySelectorAll('input[type="radio"]').forEach((input) => {
+        input.addEventListener('change', () => {
+          updateOptionStyles(slide);
+          nextBtn.disabled = false;
+          navHint.style.visibility = 'hidden';
+        });
+      });
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (current > 0) {
+        current -= 1;
+        render();
+      }
+    });
+
+    nextBtn.addEventListener('click', (e) => {
+      if (nextBtn.type === 'button') {
+        e.preventDefault();
+        if (current < total - 1) {
+          current += 1;
+          render();
+        }
+      }
+      // type === 'submit' on the last question: let the form submit natively
+    });
+
+    render();
+  })();
+</script>
+{% endblock %}

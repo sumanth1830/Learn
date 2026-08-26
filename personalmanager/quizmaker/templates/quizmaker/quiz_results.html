@@ -1,0 +1,119 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Results — {{ quiz_history.quiz.quiz_name }} — Marginal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/quiz_results.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container results-shell">
+
+  {% widthratio quiz_history.num_correct quiz_history.total_attempted 100 as pct_correct %}
+
+  <div class="card results-hero">
+    <span class="eyebrow">{{ quiz_history.quiz.quiz_name }}</span>
+
+    <div class="results-score">
+      <span class="results-score-fraction">{{ quiz_history.num_correct }}</span><span class="results-score-total">/{{ quiz_history.total_attempted }}</span>
+    </div>
+
+    <h1 class="results-headline">
+      {% if pct_correct >= 80 %}
+        Nice work — that's a strong result.
+      {% elif pct_correct >= 50 %}
+        Solid effort. A bit more practice and you've got this.
+      {% else %}
+        Good start — let's see where to focus next.
+      {% endif %}
+    </h1>
+
+    <div class="results-score-bar">
+      <div class="results-score-bar-correct" style="width: {{ pct_correct }}%;"></div>
+    </div>
+
+    <div class="results-meta">
+      <span class="badge">{{ quiz_history.quiz.quiz_topic }}</span>
+      <span class="badge">{{ quiz_history.quiz.get_difficulty_display }}</span>
+    </div>
+  </div>
+
+  <div class="results-review-heading">
+    <h2>Review your answers</h2>
+    <p>Correct answers are highlighted — your picks are marked where they didn't match.</p>
+  </div>
+
+  <div class="review-list">
+    {% for attempt_answer in quiz_history.attempt_answers.all %}
+    <div class="card review-card">
+      <div class="review-card-header">
+        {% if attempt_answer.is_correct %}
+        <span class="review-status-icon is-correct">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        {% else %}
+        <span class="review-status-icon is-wrong">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        {% endif %}
+        <div class="review-question-text">{{ attempt_answer.question.question_text }}</div>
+      </div>
+
+      <div class="review-options">
+        {% for answer in attempt_answer.question.answers.all %}
+          {% if answer.is_option %}
+          <div class="review-option
+            {% if answer.is_correct %}is-correct-answer{% endif %}
+            {% if answer.pk == attempt_answer.selected_answer_id and not answer.is_correct %}is-user-wrong{% endif %}">
+            <span class="review-option-icon">
+              {% if answer.is_correct %}
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              {% elif answer.pk == attempt_answer.selected_answer_id %}
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+              {% endif %}
+            </span>
+            <span>{{ answer.answer_text }}</span>
+            {% if answer.pk == attempt_answer.selected_answer_id %}
+              <span class="review-option-tag">Your answer</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {% if attempt_answer.question.explanation %}
+      <div class="review-explanation {% if attempt_answer.is_correct %}is-reinforcement{% else %}is-correction{% endif %}">
+        <svg class="review-explanation-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M12 16v-5M12 8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div class="review-explanation-body">
+          <span class="review-explanation-label">
+            {% if attempt_answer.is_correct %}Why this is right{% else %}Correction{% endif %}
+          </span>
+          {{ attempt_answer.question.explanation }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="results-actions">
+    <a href="{% url 'quiz:home' %}" class="btn btn-ghost">Back to home</a>
+    <a href="{% url 'quiz:quiz_create' %}" class="btn">
+      New quiz
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+
+</div>
+{% endblock %}

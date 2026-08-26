@@ -1,0 +1,237 @@
+/* ==========================================================================
+   Quiz results page
+   ========================================================================== */
+
+.results-shell {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+/* Score hero */
+.results-hero {
+  text-align: center;
+  padding: 40px 36px;
+  margin-bottom: 32px;
+}
+
+.results-hero .eyebrow { display: block; margin-bottom: 10px; }
+
+.results-score {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.6rem, 2.2rem + 2vw, 3.4rem);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.results-score-fraction { color: var(--color-primary); }
+.results-score-total { color: var(--color-ink-faint); font-size: 0.5em; }
+
+.results-headline {
+  font-size: var(--step-1);
+  margin-bottom: 18px;
+}
+
+.results-score-bar {
+  max-width: 320px;
+  margin-inline: auto;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-error-soft);
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.results-score-bar-correct {
+  background: var(--color-primary);
+  height: 100%;
+}
+
+.results-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Section heading between hero and question review */
+.results-review-heading {
+  margin-bottom: 18px;
+}
+
+.results-review-heading h2 { font-size: var(--step-1); margin-bottom: 4px; }
+.results-review-heading p { font-size: var(--step--1); color: var(--color-ink-soft); }
+
+/* Per-question review cards */
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  padding: 22px 24px;
+}
+
+.review-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.review-status-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.review-status-icon svg { width: 14px; height: 14px; }
+
+.review-status-icon.is-correct {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.review-status-icon.is-wrong {
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.review-question-text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-0);
+  line-height: 1.45;
+}
+
+.review-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  font-size: var(--step--1);
+}
+
+.review-option-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-option-icon svg { width: 10px; height: 10px; }
+
+/* Correct answer, regardless of what the user picked */
+.review-option.is-correct-answer {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.review-option.is-correct-answer .review-option-icon {
+  background: var(--color-primary);
+  color: var(--color-bg-card-raised);
+}
+
+/* The user's own selection, when it was wrong */
+.review-option.is-user-wrong {
+  border-color: var(--color-error);
+  background: var(--color-error-soft);
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.review-option.is-user-wrong .review-option-icon {
+  background: var(--color-error);
+  color: var(--color-bg-card-raised);
+}
+
+.review-option-tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+/* Explanation / correction block below the options */
+.review-explanation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  font-size: var(--step--1);
+  line-height: 1.55;
+}
+
+.review-explanation-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.review-explanation-body { flex: 1; }
+
+.review-explanation-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* Question was answered correctly — explanation reinforces, calm sage tone */
+.review-explanation.is-reinforcement {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.review-explanation.is-reinforcement .review-explanation-label { color: var(--color-primary-dark); }
+
+/* Question was missed — explanation acts as the correction, warm amber tone
+   (not clay/red again — the wrong option already carries that signal;
+   the correction itself should feel instructive, not like a second scolding) */
+.review-explanation.is-correction {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-dark);
+}
+
+.review-explanation.is-correction .review-explanation-label { color: var(--color-accent-dark); }
+
+/* Bottom actions */
+.results-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 36px;
+}
+
+@media (max-width: 560px) {
+  .results-hero { padding: 32px 24px; }
+  .review-card { padding: 18px; }
+}

@@ -183,6 +183,7 @@
 }
 
 .history-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -190,6 +191,27 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.history-row:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-card);
+}
+
+/* Stretched-link pattern: makes the whole row clickable without nesting
+   an <a> inside another interactive element. The delete button below
+   gets a higher z-index so it stays independently clickable on top. */
+.history-row-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.history-row-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .history-row-main { flex: 1; min-width: 0; }
@@ -237,6 +259,8 @@
 }
 
 .history-row-actions {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 8px;
   flex-shrink: 0;

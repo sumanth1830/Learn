@@ -1,0 +1,99 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Generating your quiz — Marginal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/processing.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="card processing-card" id="processingCard">
+    <div class="processing-visual" aria-hidden="true">
+      <svg viewBox="0 0 160 100">
+        <rect x="10" y="6" width="140" height="88" rx="10" fill="var(--color-bg-card-raised)" stroke="var(--color-border)" stroke-width="1.5"/>
+        <line x1="28" y1="28" x2="132" y2="28" stroke="var(--color-border-strong)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="28" y1="44" x2="112" y2="44" stroke="var(--color-border)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="28" y1="60" x2="122" y2="60" stroke="var(--color-border-strong)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="28" y1="76" x2="90" y2="76" stroke="var(--color-border-strong)" stroke-width="4" stroke-linecap="round"/>
+        <path class="doc-highlight-stroke" d="M28 44 L112 44" stroke="var(--color-accent)" stroke-width="10" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+
+    <span class="eyebrow">Generating</span>
+    <h1 class="processing-heading">Marking up your notes</h1>
+    <p class="processing-status" id="processingStatus">Reading your PDF…</p>
+
+    <div class="processing-meta">
+      <span class="badge">{{ quiz.quiz_topic }}</span>
+      <span class="text-faint">·</span>
+      <span class="text-faint">{{ quiz.get_difficulty_display }}</span>
+      <span class="text-faint">·</span>
+      <span class="text-faint">{{ quiz.max_questions }} questions</span>
+    </div>
+
+    <p class="processing-note">This usually takes under a minute — feel free to keep this tab open, we'll take you straight to your quiz.</p>
+  </div>
+
+  <div class="card processing-error" id="processingError" hidden>
+    <div class="confirm-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h2>Something went wrong</h2>
+    <p class="text-soft" id="processingErrorMessage">We couldn't generate your quiz from that file.</p>
+    <div class="confirm-actions">
+      <a href="{% url 'quiz:quiz_create' %}" class="btn">Try again</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const quizId = "{{ quiz.pk }}";
+    const statusUrl = `/quiz/${quizId}/status/`;
+
+    const phrases = ["Reading your PDF…", "Writing questions…", "Double-checking answers…"];
+    let phraseIndex = 0;
+    const statusEl = document.getElementById('processingStatus');
+    const phraseInterval = setInterval(() => {
+      phraseIndex = (phraseIndex + 1) % phrases.length;
+      statusEl.textContent = phrases[phraseIndex];
+    }, 4000);
+
+    async function checkStatus() {
+      try {
+        const res = await fetch(statusUrl);
+        const data = await res.json();
+
+        if (data.status === "READY") {
+          clearInterval(phraseInterval);
+          window.location.href = data.redirect_url;
+        } else if (data.status === "FAILED") {
+          clearInterval(phraseInterval);
+          document.getElementById('processingCard').hidden = true;
+          const errorCard = document.getElementById('processingError');
+          errorCard.hidden = false;
+          document.getElementById('processingErrorMessage').textContent =
+            data.error_message || "We couldn't generate your quiz from that file.";
+        } else {
+          setTimeout(checkStatus, 2000);
+        }
+      } catch (err) {
+        // Network hiccup — don't give up, just try again shortly
+        setTimeout(checkStatus, 3000);
+      }
+    }
+
+    checkStatus();
+  })();
+</script>
+{% endblock %}
