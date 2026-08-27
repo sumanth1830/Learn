@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
 {% load static %}
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,15 +31,15 @@
           <nav class="site-nav">
             <a href="{% url 'quiz:home' %}" class="{% block nav_home %}{% endblock %}">Home</a>
             <a href="{% url 'quiz:quiz_create' %}" class="{% block nav_upload %}{% endblock %}">New quiz</a>
-            {# Once quiz:quizhistory_list exists, swap the href below for {% url 'quiz:quizhistory_list' %} #}
-            <a href="#" class="nav-soon {% block nav_progress %}{% endblock %}" aria-disabled="true" title="Coming soon">Progress</a>
+            <a href="{% url 'quiz:flashcard_list' %}" class="{% block nav_flashcards %}{% endblock %}">Flashcards</a>
+            <a href="{% url 'quiz:quiz_history_list' %}" class="{% block nav_progress %}{% endblock %}">Progress</a>
           </nav>
 
           <div class="site-nav-divider"></div>
 
           <div class="auth-nav">
             {% if user.is_authenticated %}
-              <span class="nav-user">{{ user.username }}</span>
+              <a href="{% url 'quiz:profile' %}" class="nav-user">{{ user.username }}</a>
               <form method="post" action="{% url 'quiz:logout' %}" class="nav-logout-form">
                 {% csrf_token %}
                 <button type="submit" class="link-quiet">Log out</button>
@@ -54,6 +54,14 @@
     </header>
 
     <main>
+      {% if messages %}
+      <div class="container">
+        {% for message in messages %}
+        <div class="page-message {% if message.tags %}page-message-{{ message.tags }}{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       {% block content %}{% endblock %}
     </main>
 

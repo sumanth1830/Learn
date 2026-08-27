@@ -165,7 +165,12 @@ h3 { font-size: var(--step-1); }
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-ink-soft);
+  text-decoration: none;
+  transition: color 0.15s var(--ease);
 }
+
+.nav-user:hover,
+.nav-user:focus-visible { color: var(--color-primary-dark); }
 
 .nav-logout-form { display: inline-flex; }
 
@@ -181,6 +186,24 @@ h3 { font-size: var(--step-1); }
 
 .link-quiet:hover,
 .link-quiet:focus-visible { color: var(--color-primary-dark); border-color: var(--color-primary); }
+
+/* Django messages framework output */
+.page-message {
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: var(--step--1);
+  font-weight: 600;
+  margin-top: 20px;
+}
+
+.page-message-success {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.page-message-error { background: var(--color-error-soft); color: var(--color-error); }
+.page-message-warning { background: var(--color-accent-soft); color: var(--color-accent-dark); }
+.page-message-info { background: var(--color-border); color: var(--color-ink-soft); }
 
 button.link-quiet {
   appearance: none;
@@ -347,6 +370,15 @@ main {
   --btn-bg: var(--color-error);
   --btn-bg-hover: #A6483F;
 }
+
+.btn-ghost-danger {
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--color-error-soft);
+  --btn-fg: var(--color-error);
+  border-color: var(--color-border-strong);
+}
+
+.btn-ghost-danger:hover { border-color: var(--color-error); }
 
 .btn-sm {
   padding: 9px 16px;

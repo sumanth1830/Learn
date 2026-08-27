@@ -52,6 +52,7 @@ def generate_quiz_task(quiz_id, pdf_path):
                 topic=quiz.quiz_topic,
                 explanation=item.explanation,
                 creator=quiz.creator,
+                hint=item.hint,
             )
             for i, option_text in enumerate(item.options):
                 Answer.objects.create(

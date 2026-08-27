@@ -39,7 +39,31 @@
     <form method="post" novalidate>
       {% csrf_token %}
 
+      <div class="pilot-note">
+        <span class="eyebrow">Private pilot</span>
+        <p>Marginal is currently invite-only while we're in early testing. Enter your access code below to create an account.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="auth-access_code">Access code</label>
+        <input
+          class="text-input"
+          type="text"
+          id="auth-access_code"
+          name="access_code"
+          value="{{ form.access_code.value|default:"" }}"
+          required
+          autofocus
+        >
+        {% for error in form.access_code.errors %}
+          <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <hr class="form-divider" style="margin: 24px 0;">
+
       {% for field in form %}
+        {% if field.name != "access_code" %}
         {% if field.field.widget.input_type == "password" %}
         <div class="field">
           <label class="field-label" for="auth-{{ field.html_name }}">{{ field.label }}</label>
@@ -52,7 +76,7 @@
               {% if field.field.required %}required{% endif %}
             >
             <button type="button" class="password-toggle" data-toggle-for="auth-{{ field.html_name }}" aria-label="Show password">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                 <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
                 <path class="eye-slash" d="M2 2l20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -84,6 +108,7 @@
             <span class="field-error">{{ error }}</span>
           {% endfor %}
         </div>
+        {% endif %}
         {% endif %}
       {% endfor %}
 

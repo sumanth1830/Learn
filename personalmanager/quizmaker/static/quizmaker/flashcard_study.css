@@ -1,0 +1,210 @@
+/* ==========================================================================
+   Flashcard study mode
+   ========================================================================== */
+
+.study-shell {
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.study-header { margin-bottom: 28px; }
+
+.study-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.study-title { font-size: var(--step-2); }
+
+.study-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.study-progress-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-ink-faint);
+}
+
+.study-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.study-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  width: 0%;
+  transition: width 0.35s var(--ease);
+}
+
+/* Card stage */
+.study-card-stage { perspective: 1400px; }
+
+.study-card {
+  display: none;
+}
+
+.study-card.is-active { display: block; }
+
+.study-flip-inner {
+  position: relative;
+  min-height: 340px;
+  cursor: pointer;
+  transition: transform 0.5s var(--ease);
+  transform-style: preserve-3d;
+}
+
+.study-flip-inner.is-flipped { transform: rotateY(180deg); }
+
+.study-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-card);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+}
+
+.study-face-front {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.study-front-text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-2);
+  line-height: 1.35;
+  margin-bottom: 16px;
+}
+
+.study-hint {
+  font-size: var(--step--1);
+  color: var(--color-ink-faint);
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.study-flip-cue {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.study-face-back {
+  transform: rotateY(180deg);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.study-back-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-primary-dark);
+  margin-bottom: 10px;
+}
+
+.study-explanation {
+  font-size: var(--step-0);
+  line-height: 1.6;
+  color: var(--color-ink);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.study-rate-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(75, 117, 102, 0.25);
+}
+
+/* Buttons sit on the flipped face — stop the card's own click-to-flip
+   handler from firing when the user means to hit a rating button */
+.study-rate-row button { position: relative; z-index: 2; }
+
+.study-rate-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: var(--step--1);
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: transform 0.1s var(--ease), background 0.15s var(--ease);
+}
+
+.study-rate-btn:active { transform: translateY(1px); }
+
+.study-rate-btn.is-learning {
+  background: var(--color-bg-card-raised);
+  border-color: var(--color-border-strong);
+  color: var(--color-ink);
+}
+
+.study-rate-btn.is-learning:hover { border-color: var(--color-accent); }
+
+.study-rate-btn.is-mastered {
+  background: var(--color-primary);
+  color: var(--color-bg-card-raised);
+}
+
+.study-rate-btn.is-mastered:hover { background: var(--color-primary-dark); }
+
+/* Completion state */
+.study-complete {
+  text-align: center;
+  padding: 56px 36px;
+}
+
+.study-complete-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 18px;
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.study-complete h2 { margin-bottom: 8px; }
+.study-complete p { color: var(--color-ink-soft); margin-bottom: 28px; }
+
+.study-complete-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .study-face { padding: 28px 24px; }
+  .study-front-text { font-size: var(--step-1); }
+  .study-rate-row { flex-direction: column; }
+}

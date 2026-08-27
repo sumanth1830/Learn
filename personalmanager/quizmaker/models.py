@@ -60,6 +60,7 @@ class Question(TimeStampedModel):
     question_text = models.TextField()
     topic = models.CharField(max_length=50)
     question_type = models.CharField(choices=QUESTION_TYPES, max_length=3)
+    hint = models.CharField(max_length=100, default="")
     explanation = models.TextField(
         blank=True,
         help_text="Why the correct answer is correct, grounded in the source material."
@@ -107,6 +108,7 @@ class QuizHistory(TimeStampedModel):
     num_correct = models.IntegerField(default=0)
     num_wrong = models.IntegerField(default=0)
     total_attempted = models.IntegerField(default=0)
+    flashcards_created = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user} - {self.quiz.quiz_name} ({self.created_at.strftime('%Y-%m-%d')})"
@@ -116,9 +118,9 @@ class QuizHistory(TimeStampedModel):
 
 
 class FlashCard(TimeStampedModel):
-    front_text = models.CharField(max_length=100, verbose_name="Flash Text")
+    front_text = models.TextField(verbose_name="Flash Text")
     hint = models.CharField(max_length=100, blank=True)
-    explanation = models.CharField(max_length=255, verbose_name="Explanation")
+    explanation = models.TextField(verbose_name="Explanation")
     topic = models.CharField(max_length=50, verbose_name="Topic")
     creator = models.ForeignKey(
         User,
@@ -154,3 +156,20 @@ class QuizAttemptAnswer(TimeStampedModel):
         blank=True,  # null if the question somehow went unanswered
     )
     is_correct = models.BooleanField(default=False)
+
+
+class PilotAccessCode(TimeStampedModel):
+    code = models.CharField(max_length=20, unique=True)
+    used_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    used_at = models.DateTimeField(null=True, blank=True)
+    note = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        status = f"used by {self.used_by}" if self.used_by else "unused"
+        return f"{self.code} ({status})"

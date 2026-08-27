@@ -1,0 +1,47 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Your profile — Marginal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container profile-shell">
+
+  <div class="profile-header">
+    <div class="profile-avatar">{{ user.username|slice:":1"|upper }}</div>
+    <div>
+      <h1>{{ user.username }}</h1>
+      <p>Member since {{ user.date_joined|date:"F Y" }}</p>
+    </div>
+  </div>
+
+  <div class="card profile-card">
+    <div class="profile-field">
+      <span class="profile-field-label">Username</span>
+      <span class="profile-field-value">{{ user.username }}</span>
+    </div>
+    <div class="profile-field">
+      <span class="profile-field-label">Email</span>
+      <span class="profile-field-value">{{ user.email|default:"—" }}</span>
+    </div>
+    <div class="profile-field">
+      <span class="profile-field-label">Member since</span>
+      <span class="profile-field-value">{{ user.date_joined|date:"M j, Y" }}</span>
+    </div>
+  </div>
+
+  <div class="profile-coming-soon">
+    <svg class="profile-coming-soon-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+    <h3>More on the way</h3>
+    <p>Preferences, password changes, and study stats will live here soon.</p>
+  </div>
+
+</div>
+{% endblock %}

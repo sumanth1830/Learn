@@ -1,0 +1,85 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}{{ topic }} — Flashcards — Marginal{% endblock %}
+{% block nav_flashcards %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="manage-header">
+    <div>
+      <a href="{% url 'quiz:flashcard_list' %}" class="link-quiet" style="padding-left:0;">← All topics</a>
+      <h1 style="margin-top: 8px;">{{ topic }}</h1>
+    </div>
+
+    <div class="manage-header-actions">
+      <a href="{% url 'quiz:flashcard_topic_delete' topic=topic %}" class="btn btn-sm btn-ghost-danger">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Delete topic
+      </a>
+      <a href="{% url 'quiz:flashcard_create' %}" class="btn btn-sm btn-ghost">
+        New flashcard
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </a>
+      <a href="{% url 'quiz:flashcard_study' topic=topic %}" class="btn btn-sm">
+        Study this topic
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    {% for card in cards %}
+    <div class="flip-card">
+      <input type="checkbox" id="flip-{{ card.pk }}" class="flip-card-input">
+      <label for="flip-{{ card.pk }}" class="flip-card-label">
+        <div class="flip-card-inner">
+
+          <div class="flip-card-face flip-card-front">
+            <span class="badge flip-card-topic">{{ card.topic }}</span>
+            <div class="flip-card-front-text">{{ card.front_text }}</div>
+            {% if card.hint %}
+              <div class="flip-card-hint">{{ card.hint }}</div>
+            {% else %}
+              <div class="flip-card-flip-hint">Tap to reveal</div>
+            {% endif %}
+          </div>
+
+          <div class="flip-card-face flip-card-back">
+            <span class="flip-card-back-label">Explanation</span>
+            <div class="flip-card-explanation">{{ card.explanation }}</div>
+            <div class="flip-card-actions">
+              <a href="{% url 'quiz:flashcard_update' card.pk %}" class="icon-btn" aria-label="Edit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 20h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              {# Once quiz:flashcard_delete exists, swap the href below for {% url 'quiz:flashcard_delete' card.pk %} #}
+              <a href="#" class="icon-btn icon-btn-danger" aria-label="Delete" title="Coming soon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

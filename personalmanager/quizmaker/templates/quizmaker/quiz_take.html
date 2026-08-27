@@ -33,6 +33,19 @@
     <div class="quiz-slide {% if forloop.first %}is-active{% endif %}" data-slide-index="{{ forloop.counter0 }}">
       <div class="quiz-question-text">{{ question.question_text }}</div>
 
+      {% if question.hint %}
+      <div class="quiz-hint-block">
+        <button type="button" class="quiz-hint-toggle" data-hint-toggle>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="6" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M10 21h4M9 15v3a1 1 0 001 1h4a1 1 0 001-1v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span class="quiz-hint-toggle-label">Show hint</span>
+        </button>
+        <div class="quiz-hint-text" hidden>{{ question.hint }}</div>
+      </div>
+      {% endif %}
+
       <div class="quiz-options" role="radiogroup" aria-label="Answer options">
         {% for answer in question.answers.all %}
           {% if answer.is_option %}
@@ -94,6 +107,24 @@
         opt.classList.toggle('is-selected', input.checked);
       });
     }
+
+    document.querySelectorAll('[data-hint-toggle]').forEach((btn) => {
+      const hintText = btn.parentElement.querySelector('.quiz-hint-text');
+      const label = btn.querySelector('.quiz-hint-toggle-label');
+
+      btn.addEventListener('click', () => {
+        const isHidden = hintText.hasAttribute('hidden');
+        if (isHidden) {
+          hintText.removeAttribute('hidden');
+          label.textContent = 'Hide hint';
+          btn.classList.add('is-revealed');
+        } else {
+          hintText.setAttribute('hidden', '');
+          label.textContent = 'Show hint';
+          btn.classList.remove('is-revealed');
+        }
+      });
+    });
 
     function render() {
       slides.forEach((slide, i) => slide.classList.toggle('is-active', i === current));

@@ -7,9 +7,8 @@ from openai import OpenAI
 import pdfplumber
 from pydantic import BaseModel, Field
 from typing_extensions import Literal
-import json
 
-# Loading environment variables
+
 load_dotenv()
 
 print("API_BASE_URL =", os.getenv("API_BASE_URL"))
@@ -37,6 +36,7 @@ class QuizItem(BaseModel):
         Literal["A", "B", "C", "D"],
         Field(description="The letter corresponding to the correct option in `options` (A=1st, B=2nd, C=3rd, D=4th).")
     ]
+    hint: Annotated[str, Field(description="A helpful suggestion or a clue which helps to figure out the answer.")]
     explanation: Annotated[
         str,
         Field(description=(
@@ -57,6 +57,20 @@ class Quiz(BaseModel):
 
 MAX_RETRIES = 3
 
+EXAMPLE_QUIZ_ITEM = """{
+  "question": "Regarding the appointment of the Advocate General, what is the qualification required?",
+  "options": [
+    "Must be qualified to be a judge of the Supreme Court.",
+    "Must be qualified to be a judge of a High Court.",
+    "Must be an advocate of a High Court for at least 10 years.",
+    "Must be a member of the state legislature."
+  ],
+  "answer": "B",
+  "hint": "Look at the 'Law Officers' table.",
+  "explanation": "The Advocate General must be qualified to be a judge of a High Court.",
+  "question_type": "single choice question"
+}"""
+
 
 class QuizCreatorAgent:
     def create_quiz(self, quiz_details, pdf_path, feedback=None):
@@ -69,13 +83,6 @@ class QuizCreatorAgent:
         read through the provided material and generate a questionnaire as per the given requirements.
         Rely strictly on the source provided in the user prompt.
         """
-        #                 Topic: {quiz_details['topic']}
-        #                 Exam: {quiz_details['exam_name']}
-        #                 Difficulty: {quiz_details['difficulty']}
-        #                 Description: {quiz_details['description']}
-        #                 Instructions: {quiz_details['tips_for_quiz_creation']}
-        #                 Number of Questions To Create: {quiz_details['max_questions']}
-
         if feedback is None:
             user_message = f"""
                 User Requirements:
@@ -95,6 +102,32 @@ class QuizCreatorAgent:
                 <source_document>
                 {pdf_text}
                 </source_document>
+                
+                Here is an example of a single well-formed quiz item, showing
+                the exact format and quality expected for every item:
+ 
+                {EXAMPLE_QUIZ_ITEM}
+ 
+                Notice what makes this example good — model every item on
+                these same properties:
+                - Exactly 4 options, each short (under ~15 words), each a
+                  distinct, plausible answer — not restated variations of
+                  each other, and not narration about the question itself.
+                - "answer" is a single letter (A, B, C, or D) pointing at
+                  the correct option — never a description or multiple
+                  letters.
+                - "hint" points to WHERE in the material to look, without
+                  giving away the answer itself.
+                - "explanation" is one or two sentences, stating the fact
+                  directly from the source — not a restatement of the
+                  question, and not speculation beyond what the source says.
+ 
+                If a question doesn't cleanly reduce to 4 short, distinct
+                options this way, restructure it — for example, turn a
+                multi-condition rule into combination-style options (e.g.
+                "Conditions 1 and 2 only", "All three conditions", "Condition
+                1 only") rather than merging multiple facts into a single
+                option or leaving any option incomplete.
             """
 
         else:
@@ -113,6 +146,32 @@ class QuizCreatorAgent:
             Description: {quiz_details.description}
             Instructions: {quiz_details.tips_for_quiz_creation}
             Number of Questions To Create: {quiz_details.max_questions}
+            
+            Here is an example of a single well-formed quiz item, showing
+            the exact format and quality expected for every item:
+
+            {EXAMPLE_QUIZ_ITEM}
+
+            Notice what makes this example good — model every item on
+            these same properties:
+            - Exactly 4 options, each short (under ~15 words), each a
+              distinct, plausible answer — not restated variations of
+              each other, and not narration about the question itself.
+            - "answer" is a single letter (A, B, C, or D) pointing at
+              the correct option — never a description or multiple
+              letters.
+            - "hint" points to WHERE in the material to look, without
+              giving away the answer itself.
+            - "explanation" is one or two sentences, stating the fact
+              directly from the source — not a restatement of the
+              question, and not speculation beyond what the source says.
+
+            If a question doesn't cleanly reduce to 4 short, distinct
+            options this way, restructure it — for example, turn a
+            multi-condition rule into combination-style options (e.g.
+            "Conditions 1 and 2 only", "All three conditions", "Condition
+            1 only") rather than merging multiple facts into a single
+            option or leaving any option incomplete.
                 
             Your previous questionnaire had the following issues:
             {feedback}
@@ -121,6 +180,7 @@ class QuizCreatorAgent:
             Be precise and ensure all the requirements are satisfied.
             Do provide a brief explanation (1-3 sentences) for each question,
             grounded strictly in the source material, explaining why the correct answer is correct.
+            Also provide hints for each question which helps the students arrive at the answer.
 
             Please generate a quiz based strictly on the content inside the <source_document> tags.
 
@@ -145,39 +205,10 @@ class QuizCreatorAgent:
                 {"role": "user", "content": user_message},
             ],
             response_format=Quiz,  # the new letter-based Quiz/QuizItem from above
-            temperature=0.4
+            temperature=0.2
         )
 
         return response.choices[0].message.parsed
-
-        # response = client.chat.completions.create(
-        #     model=os.getenv("MODEL_NAME"),
-        #     messages=[
-        #         {"role": "system", "content": system_message},
-        #         {"role": "user", "content": user_message},
-        #     ],
-        #     response_format={"type": "json_object"},  # ask for JSON, no schema enforcement
-        #     temperature=0.4,
-        # )
-        #
-        # raw_content = response.choices[0].message.content
-        # print("=" * 60)
-        # print("RAW MODEL OUTPUT:")
-        # print(raw_content)
-        # print("=" * 60)
-        #
-        # # Now try to see if it's even valid JSON at all
-        # try:
-        #     parsed_json = json.loads(raw_content)
-        #     print(f"Valid JSON. Top-level keys: {list(parsed_json.keys())}")
-        #     if "quiz_items" in parsed_json and parsed_json["quiz_items"]:
-        #         first_item = parsed_json["quiz_items"][0]
-        #         print(f"First item keys: {list(first_item.keys())}")
-        #         print(f"First item 'answer' field: {first_item.get('answer')!r}")
-        #
-        #     return parsed_json
-        # except json.JSONDecodeError as e:
-        #     print(f"NOT valid JSON: {e}")
 
 
 class QuizEvaluatorAgent:
@@ -212,22 +243,32 @@ class QuizEvaluatorAgent:
         <source_document>
         {pdf_text}
         </source_document>
+        
+        Please evaluate the Proposed Questionnaire against the specified User
+        Requirements and the <source_document>. These are judgment calls that
+        require reading comprehension — do not comment on question count or
+        option count, those are already verified separately.
+ 
+        Confirm whether each of these is fully satisfied:
 
-        Please evaluate the Proposed Questionnaire against all specified User Requirements and the <source_document>.
-        Confirm whether each of these constraints is fully satisfied:
-        1. Is the difficulty of the questions aligned with the requested difficulty level for this exam?
-        2. Is the total number of questions equal to the Number of Questions limit specified?
-        3. Are the questions contextually valid and logically sound?
-        4. Are the questions strictly derived from the provided <source_document>?
-        5. Does each question has 4 options?
-        6. Does each question have a clear, source-grounded explanation for
-           why its the correct answer?
-
+        1. Is the difficulty of the questions aligned with the requested
+           difficulty level for this exam?
+        2. Are the questions contextually valid, logically sound, and
+           unambiguous?
+        3. Are the questions — and critically, each marked correct answer —
+           strictly and accurately derived from the <source_document>? Flag
+           anything hallucinated, or any case where the labeled correct
+           answer is not actually correct according to the source.
+        4. Is each explanation accurate and clearly grounded in the source
+           material, not just plausible-sounding?
+ 
         If ALL constraints are fully satisfied, begin your response with exactly:
         "APPROVED: This questionnaire meets all requirements."
+ 
+        Otherwise, list specifically which requirements are NOT met and provide
+        detailed feedback for how to modify the questionnaire to meet those
+        requirements.
 
-        Otherwise, list specifically which requirements are NOT met and provide detailed feedback for how to modify 
-        the questionnaire to meet those requirements.
         """
 
         response = client.chat.completions.create(
@@ -249,6 +290,7 @@ def generate_and_evaluate_quiz(quiz_details, pdf_path):
     generated_questionnaire = None
     feedback = None
     attempts = 0
+    evaluation = None
 
     for attempt in range(MAX_RETRIES):
         attempts += 1
@@ -271,40 +313,40 @@ def generate_and_evaluate_quiz(quiz_details, pdf_path):
     return generated_questionnaire, evaluation, attempts
 
 
-if __name__ == "__main__":
-    print("Questionnaire Generator")
-    print("\nCreating optimized questionnaire...")
-
-    quiz_details = {
-        'pdf_path': "../tmp_uploads/7f1fd131-8c44-437d-8deb-41bc361a1814_Polity_01_Constitutional_Foundations.pdf",
-        'topic': 'Polity',
-        'exam_name': 'UPSC Prelims',
-        'difficulty': 'Hard',
-        'max_questions': 20,
-        'description': "Polity Notes for Constitutional_Foundations",
-        'tips_for_quiz_creation': 'Create difficult questions',
-    }
-
-    quiz_result, evaluation, attempts = generate_and_evaluate_quiz(quiz_details)
-
-    print(f"\nAttempts: {attempts}")
-    if "APPROVED" in evaluation.upper():
-        print("✅ All requirements satisfied!")
-    else:
-        print("⚠️ Could not satisfy all requirements after maximum retries.")
-
-    # Iterate and display each question item
-    if quiz_result and hasattr(quiz_result, 'quiz_items'):
-        print(f"\n================ Generated Quiz ({len(quiz_result.quiz_items)} Questions) ================\n")
-
-        for idx, item in enumerate(quiz_result.quiz_items, 1):
-            # FIXED: Read item.question_type (Enum) and item.question (str)
-            print(f"Q{idx}. [{item.question_type.value.upper()}] {item.question}")
-            print("Options:")
-            for opt_idx, option in enumerate(item.answer, 1):
-                print(f"   {chr(64 + opt_idx)}. {option}")  # Prints A., B., C., D.
-
-            print(f"✓ Correct Answer(s): {', '.join(item.correct_answers)}")
-            print("-" * 60)
-    else:
-        print("\nFailed to generate a valid structured quiz.")
+# if __name__ == "__main__":
+#     print("Questionnaire Generator")
+#     print("\nCreating optimized questionnaire...")
+#
+#     quiz_details = {
+#         'pdf_path': "../tmp_uploads/7f1fd131-8c44-437d-8deb-41bc361a1814_Polity_01_Constitutional_Foundations.pdf",
+#         'topic': 'Polity',
+#         'exam_name': 'UPSC Prelims',
+#         'difficulty': 'Hard',
+#         'max_questions': 20,
+#         'description': "Polity Notes for Constitutional_Foundations",
+#         'tips_for_quiz_creation': 'Create difficult questions',
+#     }
+#
+#     quiz_result, evaluation, attempts = generate_and_evaluate_quiz(quiz_details)
+#
+#     print(f"\nAttempts: {attempts}")
+#     if "APPROVED" in evaluation.upper():
+#         print("✅ All requirements satisfied!")
+#     else:
+#         print("⚠️ Could not satisfy all requirements after maximum retries.")
+#
+#     # Iterate and display each question item
+#     if quiz_result and hasattr(quiz_result, 'quiz_items'):
+#         print(f"\n================ Generated Quiz ({len(quiz_result.quiz_items)} Questions) ================\n")
+#
+#         for idx, item in enumerate(quiz_result.quiz_items, 1):
+#             # FIXED: Read item.question_type (Enum) and item.question (str)
+#             print(f"Q{idx}. [{item.question_type.value.upper()}] {item.question}")
+#             print("Options:")
+#             for opt_idx, option in enumerate(item.answer, 1):
+#                 print(f"   {chr(64 + opt_idx)}. {option}")  # Prints A., B., C., D.
+#
+#             print(f"✓ Correct Answer(s): {', '.join(item.correct_answers)}")
+#             print("-" * 60)
+#     else:
+#         print("\nFailed to generate a valid structured quiz.")

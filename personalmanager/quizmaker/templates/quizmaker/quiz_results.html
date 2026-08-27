@@ -40,6 +40,62 @@
     </div>
   </div>
 
+  {% if quiz_history.flashcards_created %}
+  <div class="card save-flashcards-card save-flashcards-done">
+    <div class="save-flashcards-header">
+      <div class="save-flashcards-icon is-done">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Flashcards saved</h3>
+        <p>Already created for this attempt under "{{ quiz_history.quiz.quiz_topic }}"</p>
+      </div>
+    </div>
+    <a href="{% url 'quiz:flashcard_topic' topic=quiz_history.quiz.quiz_topic %}" class="btn btn-sm btn-ghost">
+      View flashcards
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+  {% else %}
+  <div class="card save-flashcards-card">
+    <div class="save-flashcards-header">
+      <div class="save-flashcards-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="7" y="9" width="14" height="10" rx="2" fill="var(--color-bg-card)" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Save these for revision</h3>
+        <p>Turn this quiz's questions into flashcards under "{{ quiz_history.quiz.quiz_topic }}"</p>
+      </div>
+    </div>
+
+    <form class="save-flashcards-form" method="post" action="{% url 'quiz:create_flashcards_from_quiz' pk=quiz_history.pk %}">
+      {% csrf_token %}
+      <div class="segmented" role="radiogroup" aria-label="Flashcard scope">
+        {% if quiz_history.num_wrong > 0 %}
+        <input type="radio" id="scope-incorrect" name="scope" value="incorrect" checked>
+        <label for="scope-incorrect">Just the ones I missed</label>
+        {% endif %}
+
+        <input type="radio" id="scope-all" name="scope" value="all" {% if quiz_history.num_wrong == 0 %}checked{% endif %}>
+        <label for="scope-all">All questions</label>
+      </div>
+      <button type="submit" class="btn btn-sm">
+        Create flashcards
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
   <div class="results-review-heading">
     <h2>Review your answers</h2>
     <p>Correct answers are highlighted — your picks are marked where they didn't match.</p>
@@ -51,13 +107,13 @@
       <div class="review-card-header">
         {% if attempt_answer.is_correct %}
         <span class="review-status-icon is-correct">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
         {% else %}
         <span class="review-status-icon is-wrong">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
           </svg>
         </span>
@@ -73,9 +129,9 @@
             {% if answer.pk == attempt_answer.selected_answer_id and not answer.is_correct %}is-user-wrong{% endif %}">
             <span class="review-option-icon">
               {% if answer.is_correct %}
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
               {% elif answer.pk == attempt_answer.selected_answer_id %}
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
               {% endif %}
             </span>
             <span>{{ answer.answer_text }}</span>
@@ -89,7 +145,7 @@
 
       {% if attempt_answer.question.explanation %}
       <div class="review-explanation {% if attempt_answer.is_correct %}is-reinforcement{% else %}is-correction{% endif %}">
-        <svg class="review-explanation-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="review-explanation-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
           <path d="M12 16v-5M12 8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>

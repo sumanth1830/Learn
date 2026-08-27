@@ -1,0 +1,38 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Delete "{{ topic }}" flashcards — Marginal{% endblock %}
+{% block nav_flashcards %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="card confirm-card">
+    <div class="confirm-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h2>Delete this whole topic?</h2>
+    <p class="text-soft">
+      This deletes all {{ count }} flashcard{{ count|pluralize }} under "{{ topic }}." This can't be undone.
+    </p>
+
+    <div class="confirm-preview">{{ topic }} — {{ count }} card{{ count|pluralize }}</div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="confirm-actions">
+        <a href="{% url 'quiz:flashcard_topic' topic=topic %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-danger">Delete {{ count }} flashcard{{ count|pluralize }}</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

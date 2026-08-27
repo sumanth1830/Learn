@@ -1,0 +1,176 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Studying {{ topic }} — Marginal{% endblock %}
+{% block nav_flashcards %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/flashcard_study.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container study-shell">
+
+  <div id="studyHeader" class="study-header">
+    <div class="study-header-top">
+      <div>
+        <span class="eyebrow">Studying</span>
+        <h1 class="study-title">{{ topic }}</h1>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="shuffleBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M4 4l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Shuffle
+      </button>
+    </div>
+
+    <div class="study-progress-row">
+      <span class="study-progress-label" id="studyProgressLabel">0 of {{ cards|length }} learned</span>
+    </div>
+    <div class="study-progress-track">
+      <div class="study-progress-fill" id="studyProgressFill"></div>
+    </div>
+  </div>
+
+  <div class="study-card-stage" id="studyStage">
+    {% for card in cards %}
+    <div class="study-card {% if forloop.first %}is-active{% endif %}" data-index="{{ forloop.counter0 }}">
+      <div class="study-flip-inner">
+        <div class="study-face study-face-front">
+          <div class="study-front-text">{{ card.front_text }}</div>
+          {% if card.hint %}
+            <div class="study-hint">{{ card.hint }}</div>
+          {% endif %}
+          <div class="study-flip-cue">Tap to reveal</div>
+        </div>
+        <div class="study-face study-face-back">
+          <span class="study-back-label">Explanation</span>
+          <div class="study-explanation">{{ card.explanation }}</div>
+          <div class="study-rate-row">
+            <button type="button" class="study-rate-btn is-learning" data-rate="learning">
+              Still learning
+            </button>
+            <button type="button" class="study-rate-btn is-mastered" data-rate="mastered">
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card study-complete" id="studyComplete" hidden>
+    <div class="study-complete-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>Nice work</h2>
+    <p>You've gone through all {{ cards|length }} flashcards in "{{ topic }}."</p>
+    <div class="study-complete-actions">
+      <a href="{% url 'quiz:flashcard_topic' topic=topic %}" class="btn btn-ghost">Back to flashcards</a>
+      <button type="button" class="btn" id="studyAgainBtn">
+        Study again
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M4 4l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const cards = Array.from(document.querySelectorAll('.study-card'));
+    const total = cards.length;
+
+    const header = document.getElementById('studyHeader');
+    const stage = document.getElementById('studyStage');
+    const complete = document.getElementById('studyComplete');
+    const progressFill = document.getElementById('studyProgressFill');
+    const progressLabel = document.getElementById('studyProgressLabel');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const studyAgainBtn = document.getElementById('studyAgainBtn');
+
+    let queue = [];
+    let mastered = 0;
+    let currentIndex = null;
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function updateProgress() {
+      progressFill.style.width = `${(mastered / total) * 100}%`;
+      progressLabel.textContent = `${mastered} of ${total} learned`;
+    }
+
+    function showCard(index) {
+      currentIndex = index;
+      cards.forEach((c) => {
+        c.classList.toggle('is-active', Number(c.dataset.index) === index);
+        c.querySelector('.study-flip-inner').classList.remove('is-flipped');
+      });
+    }
+
+    function showNext() {
+      if (queue.length === 0) {
+        stage.hidden = true;
+        header.hidden = true;
+        complete.hidden = false;
+        return;
+      }
+      showCard(queue.shift());
+    }
+
+    function startSession() {
+      mastered = 0;
+      queue = cards.map((c) => Number(c.dataset.index));
+      stage.hidden = false;
+      header.hidden = false;
+      complete.hidden = true;
+      updateProgress();
+      showNext();
+    }
+
+    cards.forEach((card) => {
+      const inner = card.querySelector('.study-flip-inner');
+      inner.addEventListener('click', () => inner.classList.toggle('is-flipped'));
+
+      card.querySelectorAll('.study-rate-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (btn.dataset.rate === 'mastered') {
+            mastered += 1;
+            updateProgress();
+          } else {
+            queue.push(currentIndex);
+          }
+          showNext();
+        });
+      });
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+      // Only the upcoming cards are in the queue — the one currently on
+      // screen already got shifted out, so this reorders what's next
+      // without disturbing what the student is looking at right now.
+      shuffle(queue);
+    });
+
+    studyAgainBtn.addEventListener('click', startSession);
+
+    startSession();
+  })();
+</script>
+{% endblock %}
