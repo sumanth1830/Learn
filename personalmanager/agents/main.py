@@ -25,6 +25,9 @@ class QuestionTypeEnums(str, Enum):
     SQ = "single choice question"
     MCQ = "multiple choice question"
 
+class ApprovedOrRejected(BaseModel):
+    status: Annotated[Literal["Approved", "Rejected"], Field(description="Status of the Evaluation")]
+
 
 class QuizItem(BaseModel):
     question: Annotated[str, Field(description="Question text")]
@@ -271,15 +274,28 @@ class QuizEvaluatorAgent:
 
         """
 
-        response = client.chat.completions.create(
+        # response = client.chat.completions.create(
+        #     model=os.getenv("EVAL_MODEL_NAME"),
+        #     messages=[
+        #         {"role": "system", "content": system_message},
+        #         {"role": "user", "content": user_message}
+        #     ],
+        #     temperature=0.1
+        # )
+        # return response.choices[0].message.content
+
+        response = client.beta.chat.completions.parse(
             model=os.getenv("EVAL_MODEL_NAME"),
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
             ],
-            temperature=0.1
+            temperature=0.1,
+            response_format=ApprovedOrRejected,
         )
-        return response.choices[0].message.content
+
+        parsed_output = response.choices[0].message.parsed
+        return parsed_output
 
 
 def generate_and_evaluate_quiz(quiz_details, pdf_path):

@@ -2,6 +2,7 @@ import os
 from celery import shared_task
 from .models import Question, Answer, Quiz
 from agents.main import generate_and_evaluate_quiz
+from celery.exceptions import SoftTimeLimitExceeded
 
 def _normalize(s):
     return s.strip().lower()
@@ -70,6 +71,12 @@ def generate_quiz_task(quiz_id, pdf_path):
 
         quiz.status = "READY"
         quiz.save(update_fields=["status"])
+
+    except SoftTimeLimitExceeded:
+        quiz.status = "FAILED"
+        quiz.error_message = "Generation took too long and was stopped. Try a shorter document or fewer questions."
+        quiz.save(update_fields=["status", "error_message"])
+        raise
 
     except Exception as e:
         quiz.status = "FAILED"
