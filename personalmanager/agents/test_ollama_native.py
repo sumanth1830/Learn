@@ -13,12 +13,30 @@ import sys
 import time
 import requests
 from pydantic import ValidationError
+import pdfplumber
 
 from main import Quiz
-from test_generation_extracted import extract_pdf_text
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 MODEL_NAME = "gemma4:12b"
+
+
+def extract_pdf_text(pdf_path):
+    full_text = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            page_text = page.extract_text() or ""
+            full_text.append(page_text)
+
+            tables = page.extract_tables()
+            for i, table in enumerate(tables, start=1):
+                full_text.append(f"\n[Table {i} on page {page_num} — extracted with structure preserved:]")
+                for row in table:
+                    clean_row = [(cell or "").strip().replace("\n", " ") for cell in row]
+                    full_text.append(" | ".join(clean_row))
+
+    return "\n".join(full_text)
+
 
 pdf_path = sys.argv[1]
 max_questions = int(sys.argv[2]) if len(sys.argv) > 2 else 1
@@ -32,7 +50,7 @@ extract_time = time.time() - t0
 print(f"Done in {extract_time:.1f}s — {len(source_text)} characters\n")
 
 instructions_text = f"""
-Generate exactly {max_questions} single choice question{'s' if max_questions != 1 else ''}, each with
+Generate exactly {max_questions} multiple choice question{'s' if max_questions != 1 else ''}, each with
 4 options, one correct answer letter, a hint, and an explanation, based
 strictly on the following source document.
 
