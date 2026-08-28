@@ -1,10 +1,10 @@
 """
 Run: python test_hybrid.py path/to/your.pdf [max_questions]
 
-Full hybrid pipeline test: vision-transcribe every page (slow but now
-much faster with more CPU cores), then run the already-proven-fast
-TEXT-based creator/evaluator on the accumulated clean text. Times each
-phase separately plus the grand total — the real number that matters.
+Fixes two gaps from the last run: saves the transcribed text to disk
+(so Phase 2 can be re-debugged without redoing the expensive Phase 1
+transcription every time), and actually prints the evaluator's real
+feedback text, not just its status.
 """
 import os
 import sys
@@ -49,7 +49,14 @@ def create_quiz_text(quiz_details, source_text, feedback=None):
         </source_document>
     """
     if feedback:
-        instructions_text += f"\n\nYour previous attempt had these issues:\n{feedback}\nRevise accordingly."
+        instructions_text += f"""
+
+        Your previous attempt had these issues:
+        {feedback}
+
+        Output ONLY the corrected quiz as structured JSON — do not restate,
+        discuss, or explain the feedback itself in your response.
+        """
 
     response = client.beta.chat.completions.parse(
         model=os.getenv("MODEL_NAME"),
@@ -100,11 +107,24 @@ quiz_details = SimpleNamespace(
     max_questions=max_questions,
 )
 
-print("=== PHASE 1: Transcription ===")
-t0 = time.time()
-source_text = transcribe_pdf(pdf_path)
-transcribe_time = time.time() - t0
-print(f"Transcription complete: {transcribe_time:.1f}s ({transcribe_time / 60:.1f} min)\n")
+TRANSCRIPT_CACHE = "transcribed_text.txt"
+
+if os.path.exists(TRANSCRIPT_CACHE):
+    print(f"Found cached transcript at {TRANSCRIPT_CACHE}, skipping Phase 1.")
+    with open(TRANSCRIPT_CACHE) as f:
+        source_text = f.read()
+    transcribe_time = 0.0
+else:
+    print("=== PHASE 1: Transcription ===")
+    t0 = time.time()
+    source_text = transcribe_pdf(pdf_path)
+    transcribe_time = time.time() - t0
+    with open(TRANSCRIPT_CACHE, "w") as f:
+        f.write(source_text)
+    print(f"Transcription complete: {transcribe_time:.1f}s ({transcribe_time / 60:.1f} min)")
+    print(f"Saved to {TRANSCRIPT_CACHE} for reuse next time.\n")
+
+print(f"Source text length: {len(source_text)} characters\n")
 
 print("=== PHASE 2: Generation ===")
 t1 = time.time()
@@ -125,6 +145,7 @@ for attempt in range(MAX_RETRIES):
 
     evaluation = evaluate_text(quiz_details, source_text, questionnaire)
     print(f"Evaluation: {evaluation.status}")
+    print(f"Feedback: {evaluation.feedback}\n")
     if evaluation.status == "Approved":
         break
     feedback = evaluation.feedback
