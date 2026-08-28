@@ -21,22 +21,23 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("API_BASE_URL"))
 
 pdf_path = sys.argv[1]
+max_questions = int(sys.argv[2]) if len(sys.argv) > 2 else 1
 
 print("Extracting text...")
 source_text = extract_pdf_text(pdf_path)
 print(f"Source text length: {len(source_text)} characters\n")
 
 instructions_text = f"""
-Generate exactly 1 multiple choice question, with 4 options, one correct
-answer letter, a hint, and an explanation, based strictly on the following
-source document.
+Generate exactly {max_questions} multiple choice question{'s' if max_questions != 1 else ''}, each with
+4 options, one correct answer letter, a hint, and an explanation, based
+strictly on the following source document.
 
 <source_document>
 {source_text}
 </source_document>
 """
 
-print("Sending minimal request...")
+print(f"Sending minimal request for {max_questions} question(s)...")
 t0 = time.time()
 
 response = client.beta.chat.completions.parse(
