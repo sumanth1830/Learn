@@ -127,7 +127,9 @@ try:
     for i, item in enumerate(quiz.quiz_items, 1):
         print(f"Q{i}: {item.question}")
         print(f"   Options: {item.options}")
-        print(f"   Answer: {item.answer}\n")
+        print(f"   Answer: {item.answer}")
+        print(f"   Hint: {item.hint}")
+        print(f"   Explanation: {item.explanation}\n")
 except ValidationError as e:
     print(f"FAILED to parse response against Quiz schema: {e}")
     print(f"\nRaw content (first 1000 chars):\n{content[:1000]}")
