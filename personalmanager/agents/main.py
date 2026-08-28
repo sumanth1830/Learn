@@ -295,7 +295,7 @@ class QuizEvaluatorAgent:
         )
 
         parsed_output = response.choices[0].message.parsed
-        return parsed_output
+        return parsed_output.status
 
 
 def generate_and_evaluate_quiz(quiz_details, pdf_path):
@@ -313,13 +313,13 @@ def generate_and_evaluate_quiz(quiz_details, pdf_path):
         print(f"\n--- Attempt #{attempts} ---")
 
         generated_questionnaire = creator.create_quiz(quiz_details, pdf_path, feedback)
-        evaluation = evaluator.evaluate(quiz_details, pdf_path, generated_questionnaire)
+        evaluation_status = evaluator.evaluate(quiz_details, pdf_path, generated_questionnaire)
 
         print(f"\n📋 Evaluation Result:")
         print(evaluation)
 
         # Check for approval prefix
-        if evaluation.strip().upper().startswith("APPROVED"):
+        if evaluation_status.upper() == "APPROVED":
             print("\n✅ All requirements satisfied!")
             break
         else:
