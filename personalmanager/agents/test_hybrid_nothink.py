@@ -23,25 +23,89 @@ MODEL_NAME = "gemma4:12b"
 TRANSCRIPT_CACHE = "transcribed_text_nothink.txt"
 
 
-def transcribe_page(image_b64):
-    response = requests.post(OLLAMA_URL, json={
-        "model": MODEL_NAME,
-        "messages": [{
-            "role": "user",
-            "content": (
-                "Transcribe all content on this page accurately and completely. "
-                "If there are tables, format each one as a clean markdown table, "
-                "keeping every table's rows and columns correctly separated — "
-                "do not merge content from different tables together, even if "
-                "they appear side by side on the page. Output only the "
-                "transcription, no commentary."
-            ),
-            "images": [image_b64],
-        }],
-        "think": False,
-        "stream": False,
-    })
-    return response.json()["message"]["content"]
+# def transcribe_page(image_b64):
+#     response = requests.post(OLLAMA_URL, json={
+#         "model": MODEL_NAME,
+#         "messages": [{
+#             "role": "user",
+#             "content": (
+#                 "Transcribe all content on this page accurately and completely. "
+#                 "If there are tables, format each one as a clean markdown table, "
+#                 "keeping every table's rows and columns correctly separated — "
+#                 "do not merge content from different tables together, even if "
+#                 "they appear side by side on the page. Output only the "
+#                 "transcription, no commentary."
+#             ),
+#             "images": [image_b64],
+#         }],
+#         "think": False,
+#         "stream": False,
+#     })
+#     return response.json()["message"]["content"]
+
+import re
+
+
+def looks_like_garbage(text, max_repeat_ratio=0.3):
+    """
+    Detects the specific degenerate-repetition failure we hit on page 10 —
+    a short substring (like '**|**') repeating far more than any real
+    transcription ever would. Not foolproof, but catches the extreme case
+    cheaply, without needing to understand the content itself.
+    """
+    if len(text) < 50:
+        return False
+
+    # Find any short chunk (3-10 chars) that repeats an excessive number
+    # of times relative to the text's total length.
+    for chunk_len in range(3, 11):
+        chunks = [text[i:i + chunk_len] for i in range(0, len(text) - chunk_len, chunk_len)]
+        if not chunks:
+            continue
+        most_common = max(set(chunks), key=chunks.count)
+        repeat_count = chunks.count(most_common)
+        if repeat_count / len(chunks) > max_repeat_ratio and repeat_count > 20:
+            return True
+    return False
+
+
+def transcribe_page(image_b64, max_attempts=2):
+    for attempt in range(max_attempts):
+        response = requests.post(OLLAMA_URL, json={
+            "model": MODEL_NAME,
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Transcribe all content on this page EXACTLY as written — "
+                    "word for word, verbatim. Do NOT paraphrase, summarize, "
+                    "rephrase, or improve the wording in any way, even if it "
+                    "would read more naturally. Reproduce the precise text as "
+                    "it appears on the page. "
+                    "If there are tables, format each one as a clean markdown "
+                    "table, keeping every table's rows and columns correctly "
+                    "separated — do not merge content from different tables "
+                    "together, even if they appear side by side on the page. "
+                    "Output only the verbatim transcription, no commentary."
+                ),
+                "images": [image_b64],
+            }],
+            "think": False,
+            "stream": False,
+            "options": {
+                "num_predict": 4000,  # hard cap — bounds worst-case time even
+                                       # if the known repetition bug fires
+            },
+        })
+        text = response.json()["message"]["content"]
+
+        if not looks_like_garbage(text):
+            return text
+
+        print(f"    (attempt {attempt + 1}: detected repetition-loop garbage, retrying...)")
+
+    # Ran out of attempts — return what we have with a clear marker rather
+    # than silently passing garbage downstream into generation.
+    return f"[TRANSCRIPTION FAILED — repetition loop detected after {max_attempts} attempts]\n{text[:200]}"
 
 
 def transcribe_pdf(pdf_path):
