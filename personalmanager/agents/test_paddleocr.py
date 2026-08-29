@@ -14,7 +14,7 @@ from paddleocr import PPStructureV3
 pdf_path = sys.argv[1]
 
 print("Initializing PP-StructureV3 pipeline (first run downloads model weights, may take a while)...")
-pipeline = PPStructureV3()
+pipeline = PPStructureV3(text_recognition_model_name="en_PP-OCRv5_mobile_rec")
 
 print(f"\nProcessing {pdf_path}...")
 t0 = time.time()
@@ -34,7 +34,14 @@ for i, res in enumerate(results):
     # the else branch prints the object's real attributes so we can see
     # the correct one instead of guessing further.
     if hasattr(res, "markdown"):
-        page_text = res.markdown
+        raw = res.markdown
+        print(f"DEBUG: res.markdown type = {type(raw)}")
+        if isinstance(raw, dict):
+            print(f"DEBUG: dict keys = {list(raw.keys())}")
+            # Most likely shape based on PaddleOCR's markdown export pattern
+            page_text = raw.get("markdown_texts") or raw.get("text") or str(raw)
+        else:
+            page_text = raw
     elif hasattr(res, "save_to_markdown"):
         res.save_to_markdown(f"page_{i + 1}.md")
         with open(f"page_{i + 1}.md") as f:
