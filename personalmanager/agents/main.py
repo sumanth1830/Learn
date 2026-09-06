@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from typing_extensions import Literal
-
-from pdf_to_images import pdf_to_base64_images
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.base_models import InputFormat
 
 load_dotenv()
 
@@ -81,23 +82,35 @@ EXAMPLE_QUIZ_ITEM = """{
 }"""
 
 
-def _build_image_content(images):
-    """Shared helper — both agents build the same image-block list from an
-    already-rendered images array, rather than each re-rendering the PDF."""
-    return [
-        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}}
-        for img_b64 in images
-    ]
+def extract_text_from_pdf(pdf_path):
+    """
+    Replaces pdf_to_base64_images - Docling extraction (default, non-VLM
+    pipeline) rather than rendering page images for vision input. This is
+    the exact config we validated earlier: it correctly handled the
+    hardest case we tested against (side-by-side tables), with no
+    hallucination risk since no LLM is involved in this step.
+    """
+
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.do_table_structure = True
+
+    converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+        }
+    )
+    result = converter.convert(pdf_path)
+    return result.document.export_to_markdown()
 
 
 class QuizCreatorAgent:
-    def create_quiz(self, quiz_details, images, feedback=None):
+    def create_quiz(self, quiz_details, source_text, feedback=None):
         print("Generating Questionnaire....")
 
         system_message = """
         You are the most experienced Quiz Master known for creating questions from source material
         for relevant exams. You have astounding subject knowledge and years of experience creating
-        questionnaires. Rely strictly on the source material provided as images — do not use outside
+        questionnaires. Rely strictly on the source material provided as text — do not use outside
         knowledge, and do not merge content from different tables or columns together.
         """
 
@@ -110,13 +123,13 @@ class QuizCreatorAgent:
             Instructions: {quiz_details.tips_for_quiz_creation}
             Number of Questions To Create: {quiz_details.max_questions}
 
-            Create the quiz questionnaire from the attached page images, as per the user
+            Create the quiz questionnaire from the source document text below, as per the user
             requirements and the difficulty level of the exam.
             Do strictly follow the user requirements and instructions.
             Do generate the specified number of questions.
             Do make sure each question has 4 options to choose from.
-            Please generate a quiz based strictly on the content shown in the attached
-            images — read tables carefully, and don't merge content from different
+            Please generate a quiz based strictly on the content shown in the source
+            document below — read tables carefully, and don't merge content from different
             tables or columns together.
 
             Here is an example of a single well-formed quiz item, showing the exact
@@ -142,6 +155,10 @@ class QuizCreatorAgent:
             combination-style options (e.g. "Conditions 1 and 2 only", "All three
             conditions", "Condition 1 only") rather than merging multiple facts
             into a single option or leaving any option incomplete.
+
+            <source_document>
+            {source_text}
+            </source_document>
         """
 
         if feedback:
@@ -153,13 +170,11 @@ class QuizCreatorAgent:
             Create a revised questionnaire that specifically addresses these issues.
             """
 
-        content = [{"type": "text", "text": instructions_text}] + _build_image_content(images)
-
         response = client.beta.chat.completions.parse(
             model=os.getenv("MODEL_NAME"),
             messages=[
                 {"role": "system", "content": system_message},
-                {"role": "user", "content": content},
+                {"role": "user", "content": instructions_text},
             ],
             response_format=Quiz,
             temperature=0.2,
@@ -168,7 +183,7 @@ class QuizCreatorAgent:
 
 
 class QuizEvaluatorAgent:
-    def evaluate(self, quiz_details, images, generated_questionnaire):
+    def evaluate(self, quiz_details, source_text, generated_questionnaire):
         print("Evaluating generated questionnaire....")
 
         if isinstance(generated_questionnaire, BaseModel):
@@ -194,9 +209,9 @@ class QuizEvaluatorAgent:
         Proposed Questionnaire:
         {questionnaire_str}
 
-        The attached images are the actual source material this questionnaire should
+        The source document below is the actual source material this questionnaire should
         be grounded in. Please evaluate the Proposed Questionnaire against the
-        specified User Requirements and the attached images. These are judgment
+        specified User Requirements and the source document. These are judgment
         calls that require reading comprehension — do not comment on question
         count or option count, those are already verified separately.
 
@@ -205,7 +220,7 @@ class QuizEvaluatorAgent:
            level for this exam?
         2. Are the questions contextually valid, logically sound, and unambiguous?
         3. Are the questions — and critically, each marked correct answer —
-           strictly and accurately derived from the attached images? Flag anything
+           strictly and accurately derived from the source document? Flag anything
            hallucinated, or any case where the labeled correct answer is not
            actually correct according to the source.
         4. Is each explanation accurate and clearly grounded in the source
@@ -215,15 +230,17 @@ class QuizEvaluatorAgent:
         set status to "Rejected" and put specific, actionable feedback in the
         feedback field — exactly which requirements are not met and how to fix
         them.
-        """
 
-        content = [{"type": "text", "text": instructions_text}] + _build_image_content(images)
+        <source_document>
+        {source_text}
+        </source_document>
+        """
 
         response = client.beta.chat.completions.parse(
             model=os.getenv("EVAL_MODEL_NAME"),
             messages=[
                 {"role": "system", "content": system_message},
-                {"role": "user", "content": content},
+                {"role": "user", "content": instructions_text},
             ],
             temperature=0.1,
             response_format=QuizEvaluation,
@@ -236,9 +253,9 @@ def generate_and_evaluate_quiz(quiz_details, pdf_path):
     creator = QuizCreatorAgent()
     evaluator = QuizEvaluatorAgent()
 
-    # Rendered once here, passed to both agents every attempt — previously
+    # Extracted once here, passed to both agents every attempt — previously
     # each agent re-rendered the same PDF independently, twice per attempt.
-    images = pdf_to_base64_images(pdf_path)
+    source_text = extract_text_from_pdf(pdf_path)
 
     generated_questionnaire = None
     feedback = None
@@ -257,7 +274,7 @@ def generate_and_evaluate_quiz(quiz_details, pdf_path):
         # failure. Both real failures seen in testing were exactly this
         # kind — this is the fix.
         try:
-            generated_questionnaire = creator.create_quiz(quiz_details, images, feedback)
+            generated_questionnaire = creator.create_quiz(quiz_details, source_text, feedback)
         except Exception as e:
             print(f"\n⚠️ Creator attempt failed: {e}")
             last_creator_error = str(e)
@@ -269,7 +286,7 @@ def generate_and_evaluate_quiz(quiz_details, pdf_path):
             )
             continue
 
-        evaluation = evaluator.evaluate(quiz_details, images, generated_questionnaire)
+        evaluation = evaluator.evaluate(quiz_details, source_text, generated_questionnaire)
 
         print(f"\n📋 Evaluation Result: {evaluation.status}")
         print(evaluation.feedback)
