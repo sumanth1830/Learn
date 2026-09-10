@@ -1,7 +1,7 @@
 import os
 from celery import shared_task
 from .models import Question, Answer, Quiz
-from agents.main import generate_and_evaluate_quiz
+from agentic_app.main import generate_and_evaluate_quiz
 from celery.exceptions import SoftTimeLimitExceeded
 
 def _normalize(s):

@@ -20,6 +20,7 @@ from django.core.files.storage import default_storage
 
 PDF_TEXT_CHAR_LIMIT = 48000
 MIN_PDF_TEXT_CHARS = 300
+MAX_PDF_PAGES = 15
 
 def home(request):
     # template = loader.get_template("quizmaker/home.html")
@@ -117,6 +118,68 @@ class QuizHistoryDelete(LoginRequiredMixin, DeleteView):
     model = QuizHistory
     template_name = "quizmaker/flashcard_confirm_delete.html"
 
+# class QuizCreateView(CreateView):
+#     model = Quiz
+#     form_class = QuizCreationForm
+#     template_name = "quizmaker/quiz_form.html"
+#
+#     def form_valid(self, form):
+#         pdf_file = self.request.FILES.get("pdf_file")
+#         if not pdf_file:
+#             form.add_error(None, "Please attach a PDF for quiz generation.")
+#             return self.form_invalid(form)
+#
+#         try:
+#             pdf_file.seek(0)
+#             with pdfplumber.open(pdf_file) as pdf:
+#                 extracted_text = "\n".join(
+#                     page.extract_text() for page in pdf.pages if page.extract_text()
+#                 )
+#             pdf_file.seek(0)
+#
+#         except Exception as e:
+#             form.add_error(
+#                 None,
+#                 "We couldn't read that PDF — it may be corrupted or scanned as images "
+#                 "without extractable text."
+#             )
+#             return self.form_invalid(form)
+#
+#         char_count = len(extracted_text)
+#         print(f"[pdf check] file size: {pdf_file.size:,} bytes, "
+#               f"extracted text: {char_count:,} chars, "
+#               f"limit: {PDF_TEXT_CHAR_LIMIT:,} chars")
+#         if char_count > PDF_TEXT_CHAR_LIMIT:
+#             form.add_error(
+#                 None,
+#                 f"This PDF has too much text for reliable quiz generation "
+#                 f"({char_count:,} characters; the limit is {PDF_TEXT_CHAR_LIMIT:,}, "
+#                 f"roughly 8-15 pages). Try a shorter document, or split it into sections."
+#             )
+#             return self.form_invalid(form)
+#
+#         if char_count < MIN_PDF_TEXT_CHARS:
+#             form.add_error(
+#                 None,
+#                 "This PDF doesn't have enough extractable text to generate a quiz from "
+#                 "— it may be scanned or image-based. Try a different file."
+#             )
+#             return self.form_invalid(form)
+#
+#
+#         quiz = form.save(commit=False)
+#         quiz.creator = self.request.user
+#         quiz.status = "PENDING"
+#         quiz.save()
+#
+#         temp_name = f"tmp_uploads/{uuid.uuid4()}_{pdf_file.name}"
+#         saved_path = default_storage.save(temp_name, pdf_file)
+#         full_path = default_storage.path(saved_path)
+#         generate_quiz_task.delay(quiz.pk, full_path)
+#
+#         return redirect("quiz:processing", pk=quiz.pk)
+
+
 class QuizCreateView(CreateView):
     model = Quiz
     form_class = QuizCreationForm
@@ -131,40 +194,24 @@ class QuizCreateView(CreateView):
         try:
             pdf_file.seek(0)
             with pdfplumber.open(pdf_file) as pdf:
-                extracted_text = "\n".join(
-                    page.extract_text() for page in pdf.pages if page.extract_text()
-                )
-            pdf_file.seek(0)
-
-        except Exception as e:
-            form.add_error(
-                None,
-                "We couldn't read that PDF — it may be corrupted or scanned as images "
-                "without extractable text."
-            )
+                page_count = len(pdf.pages)
+            pdf_file.seek(0)  # reset pointer so it can still be saved to disk below
+        except Exception:
+            form.add_error(None, "We couldn't read that PDF — it may be corrupted.")
             return self.form_invalid(form)
 
-        char_count = len(extracted_text)
-        print(f"[pdf check] file size: {pdf_file.size:,} bytes, "
-              f"extracted text: {char_count:,} chars, "
-              f"limit: {PDF_TEXT_CHAR_LIMIT:,} chars")
-        if char_count > PDF_TEXT_CHAR_LIMIT:
-            form.add_error(
-                None,
-                f"This PDF has too much text for reliable quiz generation "
-                f"({char_count:,} characters; the limit is {PDF_TEXT_CHAR_LIMIT:,}, "
-                f"roughly 8-15 pages). Try a shorter document, or split it into sections."
-            )
+        if page_count == 0:
+            form.add_error(None, "This PDF appears to have no pages.")
             return self.form_invalid(form)
 
-        if char_count < MIN_PDF_TEXT_CHARS:
+        if page_count > MAX_PDF_PAGES:
             form.add_error(
                 None,
-                "This PDF doesn't have enough extractable text to generate a quiz from "
-                "— it may be scanned or image-based. Try a different file."
+                f"This PDF has {page_count} pages; the limit is {MAX_PDF_PAGES} "
+                f"pages for reliable quiz generation. Try a shorter document, "
+                f"or split it into sections."
             )
             return self.form_invalid(form)
-
 
         quiz = form.save(commit=False)
         quiz.creator = self.request.user
@@ -177,6 +224,7 @@ class QuizCreateView(CreateView):
         generate_quiz_task.delay(quiz.pk, full_path)
 
         return redirect("quiz:processing", pk=quiz.pk)
+
 
 def quiz_processing_view(request, pk):
     quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
