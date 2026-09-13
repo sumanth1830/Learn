@@ -3,6 +3,8 @@ import time
 
 import mlflow
 from celery import shared_task
+from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorOptions
+
 from .models import (
     Question, Answer, Quiz, SourceText, QuizAggregateMetrics,
     QuizGenerationLog, QuizNodeCost,
@@ -11,7 +13,6 @@ from celery.exceptions import SoftTimeLimitExceeded
 from agentic_app.workflow import graph
 from agentic_app.schema import QuizDetails
 from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.datamodel.base_models import InputFormat
 
 
@@ -35,6 +36,7 @@ def extract_text_from_pdf(pdf_path):
     """
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_table_structure = True
+    pipeline_options.accelerator_options = AcceleratorOptions(num_threads=8, device="cpu")
 
     converter = DocumentConverter(
         format_options={
