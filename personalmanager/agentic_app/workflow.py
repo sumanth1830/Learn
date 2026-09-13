@@ -28,7 +28,7 @@ DB_URI = (
 )
 
 try:
-    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:8080"))
     mlflow.set_experiment("quiz-generation")
     mlflow.langchain.autolog()
 except Exception as e:
