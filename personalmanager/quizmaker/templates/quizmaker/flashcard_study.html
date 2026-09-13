@@ -39,7 +39,7 @@
     <div class="study-card {% if forloop.first %}is-active{% endif %}" data-index="{{ forloop.counter0 }}">
       <div class="study-flip-inner">
         <div class="study-face study-face-front">
-          <div class="study-front-text">{{ card.front_text }}</div>
+          <div class="study-front-text">{{ card.front_text|linebreaksbr }}</div>
           {% if card.hint %}
             <div class="study-hint">{{ card.hint }}</div>
           {% endif %}

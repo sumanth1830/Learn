@@ -6,12 +6,23 @@ from ..schema import (
 from ..prompts import (
     correction_prompt, creator_prompt, safety_check_prompt,
     evaluator_prompt, guardrail_prompt, EXAMPLE_QUIZ_ITEM,
-    structural_retry_block_prompt, evaluation_retry_block_prompt,
+    structural_retry_block_prompt, evaluation_retry_block_prompt, general_creator_prompt,
+    ai_ml_creator_prompt, ai_ml_example_item, interview_prep_creator_prompt,
+    grade_12_below_creator_prompt, general_example_item, interview_prep_example_item,
+    grade_12_below_example_item,
 )
 from ..llms import (
     safety_llm, guardrail_llm, evaluator_llm,
     creator_llm, corrector_llm, moderation_client,
 )
+
+CREATOR_PROMPT_MAP = {
+    "UPSC": (creator_prompt, EXAMPLE_QUIZ_ITEM),
+    "GENERAL": (general_creator_prompt, general_example_item),
+    "AI_ML": (ai_ml_creator_prompt, ai_ml_example_item),
+    "INTERVIEW_PREP": (interview_prep_creator_prompt, interview_prep_example_item),
+    "GRADE_12_BELOW": (grade_12_below_creator_prompt, grade_12_below_example_item),
+}
 
 def check_moderation(user_input: str) -> tuple[bool, str]:
     """Returns (flagged, comma-separated list of triggered categories)."""
@@ -64,6 +75,9 @@ def creator_agent(state: State) -> dict:
     quiz_details = state["quiz_details"]
     retry_reason = state.get("retry_reason", "")
     token_budget = 800 * quiz_details.max_questions + 400
+    prompt_template, example_item = CREATOR_PROMPT_MAP.get(
+        quiz_details.exam_name, CREATOR_PROMPT_MAP["GENERAL"]
+    )
 
 
     if retry_reason == "structural":
@@ -81,14 +95,14 @@ def creator_agent(state: State) -> dict:
 
     # creator = creator_llm.with_structured_output(Quiz)
     creator = creator_llm.bind(max_tokens=token_budget).with_structured_output(Quiz)
-    prompt = creator_prompt.invoke({
+    prompt = prompt_template.invoke({
         "quiz_topic": quiz_details.quiz_topic,
         "exam_name": quiz_details.exam_name,
         "difficulty": quiz_details.difficulty,
         "description": quiz_details.description,
         "tips_for_quiz_creation": quiz_details.tips_for_quiz_creation,
         "max_questions": quiz_details.max_questions,
-        "example_quiz_item": EXAMPLE_QUIZ_ITEM,
+        "example_quiz_item": example_item,
         "source_text": source_text,
         "retry_block": retry_block,
     })
@@ -170,7 +184,8 @@ def correction_agent(state: State) -> dict:
         generated_quiz.quiz_items[index] = correction.corrected_item
 
     return {
-        "generated_quiz": generated_quiz
+        "generated_quiz": generated_quiz,
+        "correction_occurred": 1,
     }
 
 

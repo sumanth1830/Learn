@@ -17,27 +17,27 @@ moderation_client = OpenAI(
 )
 
 guardrail_llm = ChatOpenAI(
-    model="openai/gpt-5.4-nano", temperature=0.0, max_tokens=500,
+    model="openai/gpt-5.4-nano", temperature=0.0, max_tokens=500, timeout=120,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
 )
 
 creator_llm = ChatOpenAI(
-    model="deepseek/deepseek-v4-flash", temperature=0.2,
+    model="deepseek/deepseek-v4-flash", temperature=0.2, timeout=240,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
 )
 
 evaluator_llm = ChatOpenAI(
-    model="google/gemini-3.7-flash", temperature=0,
+    model="google/gemini-3.7-flash", temperature=0, timeout=120,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
 )
 
 safety_llm = ChatOpenAI(
-    model="deepseek/deepseek-v4-pro", temperature=0, max_tokens=1500,
+    model="deepseek/deepseek-v4-pro", temperature=0, max_tokens=1500, timeout=120,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
     extra_body={"reasoning": {"enabled": False}},
 )
 
 corrector_llm = ChatOpenAI(
-    model="deepseek/deepseek-v4-pro", temperature=0,
+    model="deepseek/deepseek-v4-pro", temperature=0, timeout=120,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
 )

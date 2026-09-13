@@ -1,0 +1,274 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}How Marginal works — Marginal{% endblock %}
+{% block nav_dashboard %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-shell">
+
+  <div class="dashboard-intro">
+    <span class="eyebrow">Under the hood</span>
+    <h1>How Marginal actually works</h1>
+    <p>Every quiz here is generated, checked, and corrected by a small pipeline of AI agents — not one model guessing. Here's what that pipeline actually does, in real numbers.</p>
+  </div>
+
+  <!-- 1. Hero strip -->
+  <div class="dash-hero-grid">
+    <div class="card dash-hero-stat">
+      <span class="dash-hero-number">{{ total_quizzes }}</span>
+      <span class="dash-hero-label">Quizzes generated</span>
+    </div>
+    <div class="card dash-hero-stat">
+      <span class="dash-hero-number">{{ approval_rate }}%</span>
+      <span class="dash-hero-label">Approval rate</span>
+    </div>
+    <div class="card dash-hero-stat">
+      <span class="dash-hero-number">${{ avg_cost }}</span>
+      <span class="dash-hero-label">Avg. cost per quiz</span>
+    </div>
+    <div class="card dash-hero-stat">
+      <span class="dash-hero-number">{{ avg_time }}s</span>
+      <span class="dash-hero-label">Avg. generation time</span>
+    </div>
+  </div>
+
+  <!-- 2. Pipeline, simple grid with per-stage stats -->
+  <div class="card dash-section">
+    <span class="eyebrow">The pipeline</span>
+    <h2>Every quiz travels through the same checkpoints</h2>
+
+    <div class="dash-flow-grid">
+
+      <div class="dash-flow-card">
+        <i class="ti ti-file-text" aria-hidden="true"></i>
+        <div class="dash-flow-label">PDF</div>
+        <div class="dash-flow-desc">PDF uploaded</div>
+      </div>
+
+      {% with stage=pipeline_stages.0 %}
+      <div class="dash-flow-card is-{{ stage.role }}">
+        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+        <div class="dash-flow-label">{{ stage.label }}</div>
+        <div class="dash-flow-desc">{{ stage.desc }}</div>
+        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+      </div>
+      {% endwith %}
+
+      {% with stage=pipeline_stages.1 %}
+      <div class="dash-flow-card is-{{ stage.role }}">
+        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+        <div class="dash-flow-label">{{ stage.label }}</div>
+        <div class="dash-flow-desc">{{ stage.desc }}</div>
+        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+      </div>
+      {% endwith %}
+
+      <div class="dash-flow-card">
+        <i class="ti ti-list-check" aria-hidden="true"></i>
+        <div class="dash-flow-label">Structural</div>
+        <div class="dash-flow-desc">Verifies format</div>
+        <div class="dash-flow-stats is-muted">no LLM call</div>
+      </div>
+
+      {% with stage=pipeline_stages.2 %}
+      <div class="dash-flow-card is-{{ stage.role }}">
+        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+        <div class="dash-flow-label">{{ stage.label }}</div>
+        <div class="dash-flow-desc">{{ stage.desc }}</div>
+        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+      </div>
+      {% endwith %}
+
+      {% with stage=pipeline_stages.3 %}
+      <div class="dash-flow-card is-{{ stage.role }}">
+        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+        <div class="dash-flow-label">{{ stage.label }}</div>
+        <div class="dash-flow-desc">{{ stage.desc }}</div>
+        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+      </div>
+      {% endwith %}
+
+      {% with stage=pipeline_stages.4 %}
+      <div class="dash-flow-card is-{{ stage.role }} is-conditional">
+        <span class="dash-flow-badge">if needed</span>
+        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+        <div class="dash-flow-label">{{ stage.label }}</div>
+        <div class="dash-flow-desc">{{ stage.desc }}</div>
+        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+      </div>
+      {% endwith %}
+
+      <div class="dash-flow-card is-success">
+        <i class="ti ti-checklist" aria-hidden="true"></i>
+        <div class="dash-flow-label">Quiz</div>
+        <div class="dash-flow-desc">Quiz presented</div>
+        <div class="dash-flow-stats">ready</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3 & 4 side by side on wide screens -->
+  <div class="dash-two-col-row">
+
+    <div class="card dash-section">
+      <span class="eyebrow">Self-correction</span>
+      <h2>The system catches its own mistakes</h2>
+      <p class="dash-narrative">
+        <strong>{{ first_pass_rate }}%</strong> of quizzes were approved on the very first attempt.
+        Of the rest, <strong>{{ self_corrected_rate }}%</strong> were automatically fixed by our
+        Corrector agent before approval. Only <strong>{{ designed_failed_rate }}%</strong> were
+        rejected by design (blocked or exhausted).
+      </p>
+      <div class="dash-stacked-bar">
+        <div class="dash-stacked-segment is-first-pass" style="width: {{ first_pass_rate }}%;" title="First pass: {{ first_pass_rate }}%"></div>
+        <div class="dash-stacked-segment is-corrected" style="width: {{ self_corrected_rate }}%;" title="Self-corrected: {{ self_corrected_rate }}%"></div>
+        <div class="dash-stacked-segment is-failed" style="width: {{ failed_rate }}%;" title="Failed: {{ failed_rate }}%"></div>
+      </div>
+      <div class="dash-stacked-legend">
+        <span><span class="dash-dot is-first-pass"></span> First try ({{ first_pass_count }})</span>
+        <span><span class="dash-dot is-corrected"></span> Self-corrected ({{ self_corrected_count }})</span>
+        <span><span class="dash-dot is-failed"></span> Failed ({{ failed_count }})</span>
+      </div>
+    </div>
+
+    <div class="card dash-section">
+      <span class="eyebrow">Safety</span>
+      <h2>What gets caught, and where</h2>
+      <div class="dash-safety-grid">
+        <div>
+          <h4>Guardrail (input checks)</h4>
+          {% if guardrail_categories %}
+          <table class="dash-table">
+            {% for cat in guardrail_categories %}
+            <tr><td>{{ cat.guardrail_category }}</td><td class="dash-table-count">{{ cat.count }}</td></tr>
+            {% endfor %}
+          </table>
+          {% else %}
+          <p class="text-faint">No issues caught yet.</p>
+          {% endif %}
+        </div>
+        <div>
+          <h4>Safety-check (output tone)</h4>
+          {% if safety_categories %}
+          <table class="dash-table">
+            {% for cat in safety_categories %}
+            <tr><td>{{ cat.safety_category }}</td><td class="dash-table-count">{{ cat.count }}</td></tr>
+            {% endfor %}
+          </table>
+          {% else %}
+          <p class="text-faint">No issues caught yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 5. Funnel + growth chart side by side -->
+  <div class="dash-two-col-row">
+
+    <div class="card dash-section">
+      <span class="eyebrow">The funnel</span>
+      <h2>Every quiz passes through five checkpoints</h2>
+      <div class="dash-funnel">
+        {% for stage in funnel %}
+        <div class="dash-funnel-row">
+          <span class="dash-funnel-label">{{ stage.label }}</span>
+          <div class="dash-funnel-track">
+            <div class="dash-funnel-fill" style="width: {% widthratio stage.count funnel_max 100 %}%;"></div>
+          </div>
+          <span class="dash-funnel-count">{{ stage.count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card dash-section">
+      <span class="eyebrow">Growth</span>
+      <h2>Cumulative quizzes generated</h2>
+      <svg width="100%" viewBox="0 0 620 130" role="img" aria-label="Cumulative quiz count over time">
+        {% if growth_points %}
+        <polygon points="{{ growth_fill_points }}" fill="var(--color-primary)" opacity="0.08"></polygon>
+        <polyline points="{{ growth_points }}" fill="none" stroke="var(--color-primary)" stroke-width="2"></polyline>
+        {% endif %}
+      </svg>
+      <div class="dash-growth-stats">
+        <div><div class="dash-hero-label">Total quizzes</div><div class="dash-hero-number" style="font-size: var(--step-2);">{{ total_quizzes }}</div></div>
+        <div><div class="dash-hero-label">Today</div><div class="dash-hero-number" style="font-size: var(--step-2);">{{ today_count }}</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 6. Quality signals -->
+  <div class="card dash-section">
+    <span class="eyebrow">Real feedback</span>
+    <h2>What people actually think</h2>
+
+    <div class="dash-rating-block">
+      <div class="dash-rating-headline">
+        <span class="dash-hero-number">{{ avg_rating }}</span>
+        <span class="text-faint">average, from {{ review_count }} review{{ review_count|pluralize }} ({{ review_response_rate }}% response rate)</span>
+      </div>
+      {% for row in rating_counts %}
+      <div class="dash-funnel-row">
+        <span class="dash-funnel-label">{{ row.stars }} star{{ row.stars|pluralize }}</span>
+        <div class="dash-funnel-track">
+          <div class="dash-funnel-fill is-rating" style="width: {% widthratio row.count max_rating_count 100 %}%;"></div>
+        </div>
+        <span class="dash-funnel-count">{{ row.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="dash-quality-grid">
+      <div>
+        <h4>Did it follow instructions?</h4>
+        <table class="dash-table">
+          <tr><td>Yes</td><td class="dash-table-count">{{ match_counts.YES }}</td></tr>
+          <tr><td>Somewhat</td><td class="dash-table-count">{{ match_counts.SOMEWHAT }}</td></tr>
+          <tr><td>No</td><td class="dash-table-count">{{ match_counts.NO }}</td></tr>
+          <tr><td>N/A</td><td class="dash-table-count">{{ match_counts.NOT_APPLICABLE }}</td></tr>
+        </table>
+      </div>
+      <div>
+        <h4>Reports filed</h4>
+        {% if flag_reasons %}
+        <table class="dash-table">
+          {% for f in flag_reasons %}
+          <tr><td>{{ f.reason }}</td><td class="dash-table-count">{{ f.count }}</td></tr>
+          {% endfor %}
+        </table>
+        <div class="dash-flag-stats">
+          <span class="dash-flag-pill">{{ whole_quiz_flags }} whole-quiz</span>
+          <span class="dash-flag-pill">{{ per_question_flags }} per-question</span>
+          <span class="dash-flag-pill">{{ flagged_quiz_rate }}% of quizzes flagged</span>
+        </div>
+        {% else %}
+        <p class="text-faint">No reports filed yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Footer strip -->
+  <div class="dash-footer-strip">
+    <span>{{ total_registrations }} registered users</span>
+    <span>·</span>
+    <span>{{ total_flashcards }} flashcards created</span>
+    <span>·</span>
+    <span>{{ avg_questions }} avg. questions per quiz</span>
+    <span>·</span>
+    {% for d in difficulty_counts %}
+    <span>{{ d.difficulty }}: {{ d.count }}</span>{% if not forloop.last %}<span>·</span>{% endif %}
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

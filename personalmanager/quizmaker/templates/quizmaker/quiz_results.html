@@ -10,6 +10,7 @@
 
 {% block content %}
 <div class="container results-shell">
+  {% csrf_token %}
 
   {% widthratio quiz_history.num_correct quiz_history.total_attempted 100 as pct_correct %}
 
@@ -38,6 +39,61 @@
       <span class="badge">{{ quiz_history.quiz.quiz_topic }}</span>
       <span class="badge">{{ quiz_history.quiz.get_difficulty_display }}</span>
     </div>
+  </div>
+
+  {% if show_review_prompt %}
+  <div class="card review-prompt" id="reviewPrompt">
+    <div class="review-prompt-header">
+      <span class="eyebrow">Quick feedback</span>
+      <h3>How was this quiz?</h3>
+    </div>
+
+    <div class="review-stars" id="reviewStars" role="radiogroup" aria-label="Rating">
+      {% for i in "12345" %}
+      <button type="button" class="review-star" data-value="{{ i }}" aria-label="{{ i }} star{{ i|pluralize }}">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2.5l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9-6.3 3.9 1.7-7-5.4-4.7 7.1-.6L12 2.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      {% endfor %}
+    </div>
+
+    <p class="review-star-label" id="reviewStarLabel">&nbsp;</p>
+
+    <div class="review-match-row" id="reviewMatchRow" hidden>
+      <label class="field-label" for="reviewMatch">Did it follow your instructions?</label>
+      <div class="select-wrap">
+        <select class="select" id="reviewMatch" name="matched_instructions">
+          <option value="N/A" selected>N/A</option>
+          <option value="YES">Yes</option>
+          <option value="SOMEWHAT">Somewhat</option>
+          <option value="NO">No</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="review-prompt-actions" id="reviewActions" hidden>
+      <button type="button" class="btn btn-sm" id="reviewSubmitBtn" disabled>Submit feedback</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="quiz-flag-row">
+    {% if quiz_already_flagged %}
+    <span class="quiz-flag-link is-flagged">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 3v18M5 4h13l-3 4 3 4H5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      Reported
+    </span>
+    {% else %}
+    <button type="button" class="quiz-flag-link" data-flag-trigger data-question-id="">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 3v18M5 4h13l-3 4 3 4H5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+      Report an issue with this quiz
+    </button>
+    {% endif %}
   </div>
 
   {% if quiz_history.flashcards_created %}
@@ -105,20 +161,36 @@
     {% for attempt_answer in quiz_history.attempt_answers.all %}
     <div class="card review-card">
       <div class="review-card-header">
-        {% if attempt_answer.is_correct %}
-        <span class="review-status-icon is-correct">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          {% if attempt_answer.is_correct %}
+          <span class="review-status-icon is-correct">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          {% else %}
+          <span class="review-status-icon is-wrong">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          {% endif %}
+          <div class="review-question-text">{{ attempt_answer.question.question_text }}</div>
+        </div>
+
+        {% if attempt_answer.question.pk in flagged_question_ids %}
+        <span class="review-flag-trigger is-flagged" aria-label="Already reported" title="Already reported">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 3v18M5 4h13l-3 4 3 4H5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
           </svg>
         </span>
         {% else %}
-        <span class="review-status-icon is-wrong">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <button type="button" class="review-flag-trigger" data-flag-trigger data-question-id="{{ attempt_answer.question.pk }}" aria-label="Report this question">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 3v18M5 4h13l-3 4 3 4H5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
           </svg>
-        </span>
+        </button>
         {% endif %}
-        <div class="review-question-text">{{ attempt_answer.question.question_text }}</div>
       </div>
 
       <div class="review-options">
@@ -171,5 +243,269 @@
     </a>
   </div>
 
+  <div class="modal-overlay" id="flagModalOverlay" hidden>
+    <div class="card modal-card" role="dialog" aria-modal="true" aria-labelledby="flagModalTitle">
+      <h3 id="flagModalTitle">Report an issue</h3>
+
+      <div class="field" style="margin-top: 16px;">
+        <label class="field-label" for="flagReason">What's wrong?</label>
+        <div class="select-wrap" style="max-width: none;">
+          <select class="select" id="flagReason" style="width: 100%;">
+            <option value="" selected disabled>Choose a reason</option>
+            <option value="FACTUALLY_INCORRECT">Factually incorrect</option>
+            <option value="DOESNT_MATCH_SOURCE">Doesn't match the source material</option>
+            <option value="INAPPROPRIATE">Inappropriate content</option>
+            <option value="TECHNICAL_ISSUE">Technical issue (formatting, broken display, etc.)</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 16px;">
+        <label class="field-label" for="flagDetail">Details <span class="text-faint">(optional)</span></label>
+        <textarea class="textarea-input" id="flagDetail" placeholder="Anything specific that would help us look into this"></textarea>
+      </div>
+
+      <p class="field-error" id="flagModalError" hidden></p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="flagModalCancel">Cancel</button>
+        <button type="button" class="btn btn-sm" id="flagModalSubmit">Submit report</button>
+      </div>
+    </div>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const promptEl = document.getElementById('reviewPrompt');
+    if (!promptEl) return;  // not shown this time (already viewed before)
+
+    const STAR_LABELS = {
+      1: "Not usable — wrong, or didn't reflect my notes",
+      2: "Real issues — noticeable mistakes, or missed what I asked for",
+      3: "Okay — mostly fine, but something was off",
+      4: "Good — accurate and matched my notes, just minor nitpicks",
+      5: "Excellent — accurate, on-topic, nothing to fix",
+    };
+
+    const stars = Array.from(document.querySelectorAll('.review-star'));
+    const starLabel = document.getElementById('reviewStarLabel');
+    const matchRow = document.getElementById('reviewMatchRow');
+    const matchSelect = document.getElementById('reviewMatch');
+    const actionsRow = document.getElementById('reviewActions');
+    const submitBtn = document.getElementById('reviewSubmitBtn');
+
+    let selectedRating = null;
+
+    function paintStars(upTo, className) {
+      stars.forEach((star) => {
+        const val = Number(star.dataset.value);
+        star.classList.toggle(className, val <= upTo);
+      });
+    }
+
+    function clearPreview() {
+      paintStars(selectedRating || 0, 'is-selected');
+      stars.forEach((s) => s.classList.remove('is-preview'));
+      starLabel.textContent = selectedRating ? STAR_LABELS[selectedRating] : '\u00A0';
+    }
+
+    stars.forEach((star) => {
+      const val = Number(star.dataset.value);
+
+      star.addEventListener('mouseenter', () => {
+        paintStars(val, 'is-preview');
+        starLabel.textContent = STAR_LABELS[val];
+      });
+
+      star.addEventListener('mouseleave', clearPreview);
+
+      star.addEventListener('click', () => {
+        selectedRating = val;
+        paintStars(val, 'is-selected');
+        stars.forEach((s) => s.classList.remove('is-preview'));
+        starLabel.textContent = STAR_LABELS[val];
+
+        matchRow.hidden = false;
+        actionsRow.hidden = false;
+        submitBtn.disabled = false;
+      });
+    });
+
+    function getCsrfToken() {
+      const match = document.cookie.match(/csrftoken=([^;]+)/);
+      return match ? match[1] : '';
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(() => toast.classList.add('is-visible'));
+
+      setTimeout(() => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedRating) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+
+      try {
+        const res = await fetch("{% url 'quiz:quiz_review_submit' quiz_history.quiz.pk %}", {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            rating: selectedRating,
+            matched_instructions: matchSelect.value,
+          }),
+        });
+
+        if (res.ok) {
+          promptEl.classList.add('is-submitting');
+          promptEl.style.maxHeight = promptEl.scrollHeight + 'px';
+          requestAnimationFrame(() => {
+            promptEl.classList.add('is-collapsed');
+            promptEl.style.maxHeight = '0';
+          });
+
+          showToast("Thanks for the feedback!");
+
+          setTimeout(() => promptEl.remove(), 400);
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit feedback';
+          starLabel.textContent = "Something went wrong — please try again.";
+        }
+      } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit feedback';
+        starLabel.textContent = "Network error — please try again.";
+      }
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    const overlay = document.getElementById('flagModalOverlay');
+    if (!overlay) return;
+
+    const reasonSelect = document.getElementById('flagReason');
+    const detailInput = document.getElementById('flagDetail');
+    const errorEl = document.getElementById('flagModalError');
+    const cancelBtn = document.getElementById('flagModalCancel');
+    const submitBtn = document.getElementById('flagModalSubmit');
+
+    let currentTrigger = null;
+
+    function getCsrfToken() {
+      const match = document.cookie.match(/csrftoken=([^;]+)/);
+      return match ? match[1] : '';
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('is-visible'));
+      setTimeout(() => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    function openModal(trigger) {
+      if (trigger.classList.contains('is-flagged') || trigger.disabled) return;
+
+      currentTrigger = trigger;
+      reasonSelect.value = '';
+      detailInput.value = '';
+      errorEl.hidden = true;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit report';
+      overlay.hidden = false;
+    }
+
+    function closeModal() {
+      overlay.hidden = true;
+      currentTrigger = null;
+    }
+
+    document.querySelectorAll('[data-flag-trigger]').forEach((btn) => {
+      btn.addEventListener('click', () => openModal(btn));
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      const reason = reasonSelect.value;
+      if (!reason) {
+        errorEl.textContent = 'Please choose a reason.';
+        errorEl.hidden = false;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+
+      const questionId = currentTrigger.dataset.questionId || '';
+      const quizPk = "{{ quiz_history.quiz.pk }}";
+
+      try {
+        const res = await fetch(`/quiz/${quizPk}/flag/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            reason: reason,
+            detail: detailInput.value,
+            question_id: questionId,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const svgHTML = currentTrigger.querySelector('svg').outerHTML;
+          const isWholeQuiz = currentTrigger.classList.contains('quiz-flag-link');
+          const flaggedEl = document.createElement('span');
+          flaggedEl.className = isWholeQuiz ? 'quiz-flag-link is-flagged' : 'review-flag-trigger is-flagged';
+          flaggedEl.innerHTML = svgHTML + (isWholeQuiz ? ' Reported' : '');
+          currentTrigger.replaceWith(flaggedEl);
+          closeModal();
+          showToast("Thanks — we'll take a look.");
+        } else {
+          errorEl.textContent = data.error || 'Something went wrong — please try again.';
+          errorEl.hidden = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit report';
+        }
+      } catch (err) {
+        errorEl.textContent = 'Network error — please try again.';
+        errorEl.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit report';
+      }
+    });
+  })();
+</script>
 {% endblock %}

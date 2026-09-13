@@ -1,0 +1,292 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Split a PDF — Marginal{% endblock %}
+{% block nav_split %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/upload.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/pdf_split.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="upload-hero">
+    <span class="eyebrow">Utility</span>
+    <h1>Split a large PDF into <span class="highlight">chapters<svg width="140" height="20" viewBox="0 0 140 20" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 14.5C2 14.5 25 8 70 9C105 9.7 130 13 138 11.5" stroke="currentColor" stroke-width="11" stroke-linecap="round"/></svg></span></h1>
+    <p>Have a long document? Split it into smaller page ranges here first, then upload each piece separately to generate a quiz.</p>
+  </div>
+
+  <div class="card upload-card">
+
+    <div class="field">
+      <label class="field-label" for="pdf-upload">Your document</label>
+
+      <label class="dropzone" id="dropzone" for="pdf-upload" tabindex="0">
+        <svg class="dropzone-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M12 12v6M9 15l3-3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="dropzone-title">Drop your PDF here, or click to browse</div>
+        <div class="dropzone-hint">Any length — no page limit for splitting</div>
+        <input type="file" id="pdf-upload" accept="application/pdf">
+      </label>
+
+      <div class="dropzone-file" id="dropzoneFile">
+        <div class="dropzone-file-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="dropzone-file-meta">
+          <div class="dropzone-file-name" id="dropzoneFileName">filename.pdf</div>
+          <div class="dropzone-file-size" id="dropzoneFileSize">—</div>
+        </div>
+        <button type="button" class="dropzone-file-remove" id="dropzoneFileRemove" aria-label="Remove file">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <p class="page-count-note" id="pageCountNote" hidden></p>
+    </div>
+
+    <hr class="form-divider">
+
+    <div class="field" style="margin-top: 28px;" id="rangesSection" hidden>
+      <span class="field-label">Page ranges</span>
+      <p class="field-hint" style="margin-bottom: 14px;">Each range becomes its own downloadable PDF.</p>
+
+      <div id="rangeRows"></div>
+
+      <button type="button" class="btn btn-ghost btn-sm" id="addRangeBtn" style="margin-top: 4px;">
+        Add another range
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="field-error" id="splitError" hidden></p>
+
+    <div class="upload-submit">
+      <button type="button" class="btn btn-block" id="splitBtn" disabled>
+        Split and download
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3v14M6 11l6 6 6-6M4 21h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="upload-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span>Everything happens in your browser session only — nothing is stored on our end.</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+  (function () {
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('pdf-upload');
+    const fileRow = document.getElementById('dropzoneFile');
+    const fileNameEl = document.getElementById('dropzoneFileName');
+    const fileSizeEl = document.getElementById('dropzoneFileSize');
+    const removeBtn = document.getElementById('dropzoneFileRemove');
+    const pageCountNote = document.getElementById('pageCountNote');
+    const rangesSection = document.getElementById('rangesSection');
+    const rangeRows = document.getElementById('rangeRows');
+    const addRangeBtn = document.getElementById('addRangeBtn');
+    const splitBtn = document.getElementById('splitBtn');
+    const errorEl = document.getElementById('splitError');
+
+    let selectedFile = null;
+    let totalPages = 0;
+    let rangeCount = 0;
+
+    function formatSize(bytes) {
+      if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function addRangeRow() {
+      rangeCount += 1;
+      const row = document.createElement('div');
+      row.className = 'range-row';
+      row.innerHTML = `
+        <input type="number" class="text-input range-start" min="1" max="${totalPages}" placeholder="Start page">
+        <span class="range-sep">to</span>
+        <input type="number" class="text-input range-end" min="1" max="${totalPages}" placeholder="End page">
+        <button type="button" class="icon-btn range-remove" aria-label="Remove range">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      `;
+      row.querySelector('.range-remove').addEventListener('click', () => {
+        row.remove();
+        validateForm();
+      });
+      row.querySelectorAll('input').forEach((input) => {
+        input.addEventListener('input', validateForm);
+      });
+      rangeRows.appendChild(row);
+      validateForm();
+    }
+
+    function validateForm() {
+      const rows = Array.from(rangeRows.querySelectorAll('.range-row'));
+      const hasValidRange = rows.some((row) => {
+        const start = parseInt(row.querySelector('.range-start').value, 10);
+        const end = parseInt(row.querySelector('.range-end').value, 10);
+        return start >= 1 && end >= start && end <= totalPages;
+      });
+      splitBtn.disabled = !(selectedFile && hasValidRange);
+    }
+
+    async function handleFile(file) {
+      selectedFile = file;
+      fileNameEl.textContent = file.name;
+      fileSizeEl.textContent = formatSize(file.size);
+      fileRow.classList.add('is-visible');
+
+      pageCountNote.hidden = false;
+      pageCountNote.textContent = 'Reading document…';
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        totalPages = pdf.numPages;
+        pageCountNote.textContent = `${totalPages} page${totalPages !== 1 ? 's' : ''} detected.`;
+
+        rangeRows.innerHTML = '';
+        rangeCount = 0;
+        rangesSection.hidden = false;
+        addRangeRow();
+      } catch (err) {
+        pageCountNote.textContent = "Couldn't read this PDF — it may be corrupted.";
+        rangesSection.hidden = true;
+        selectedFile = null;
+      }
+      validateForm();
+    }
+
+    function clearFile() {
+      selectedFile = null;
+      totalPages = 0;
+      fileInput.value = '';
+      fileRow.classList.remove('is-visible');
+      pageCountNote.hidden = true;
+      rangesSection.hidden = true;
+      rangeRows.innerHTML = '';
+      splitBtn.disabled = true;
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) handleFile(fileInput.files[0]);
+    });
+
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      clearFile();
+    });
+
+    ['dragenter', 'dragover'].forEach((evt) =>
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('is-dragover');
+      })
+    );
+    ['dragleave', 'drop'].forEach((evt) =>
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('is-dragover');
+      })
+    );
+    dropzone.addEventListener('drop', (e) => {
+      const dropped = e.dataTransfer.files;
+      if (dropped.length) handleFile(dropped[0]);
+    });
+
+    addRangeBtn.addEventListener('click', addRangeRow);
+
+    function getCsrfToken() {
+      const match = document.cookie.match(/csrftoken=([^;]+)/);
+      return match ? match[1] : '';
+    }
+
+    splitBtn.addEventListener('click', async () => {
+      const rows = Array.from(rangeRows.querySelectorAll('.range-row'));
+      const ranges = rows
+        .map((row) => [
+          parseInt(row.querySelector('.range-start').value, 10),
+          parseInt(row.querySelector('.range-end').value, 10),
+        ])
+        .filter(([start, end]) => start >= 1 && end >= start && end <= totalPages);
+
+      if (!selectedFile || ranges.length === 0) return;
+
+      errorEl.hidden = true;
+      splitBtn.disabled = true;
+      splitBtn.textContent = 'Splitting…';
+
+      const formData = new FormData();
+      formData.append('pdf_file', selectedFile);
+      formData.append('ranges', JSON.stringify(ranges));
+
+      try {
+        const res = await fetch("{% url 'quiz:pdf_split' %}", {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCsrfToken() },
+          body: formData,
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const disposition = res.headers.get('Content-Disposition') || '';
+          const match = disposition.match(/filename="(.+)"/);
+          const filename = match ? match[1] : 'split_output.pdf';
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+
+          clearFile();
+          splitBtn.textContent = 'Split and download';
+          validateForm();
+        } else {
+          const data = await res.json();
+          errorEl.textContent = data.error || 'Something went wrong — please try again.';
+          errorEl.hidden = false;
+          splitBtn.textContent = 'Split and download';
+          validateForm();
+        }
+      } catch (err) {
+        errorEl.textContent = 'Network error — please try again.';
+        errorEl.hidden = false;
+        splitBtn.textContent = 'Split and download';
+        validateForm();
+      }
+    });
+  })();
+</script>
+{% endblock %}

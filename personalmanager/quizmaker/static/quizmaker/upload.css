@@ -173,6 +173,28 @@
   color: var(--color-ink-faint);
 }
 
+.split-pdf-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--color-ink-faint);
+}
+
+.split-pdf-callout svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.split-pdf-callout a {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
 @media (max-width: 560px) {
   .upload-card { padding: 24px; }
   .upload-options {

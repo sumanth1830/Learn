@@ -64,7 +64,13 @@
       </div>
       <span class="field-hint">Used to generate your questions — not stored after processing.</span>
     </div>
-
+    <div class="split-pdf-callout">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <span>Document longer than 15 pages? <a href="{% url 'quiz:pdf_split' %}">Split it into chapters first</a>.</span>
+    </div>
     <hr class="form-divider">
 
     <div class="field" style="margin-top: 28px;">
@@ -100,17 +106,13 @@
 
       <div class="field">
         <label class="field-label" for="id_exam_name">{{ form.exam_name.label }}</label>
-        <input
-          class="text-input"
-          type="text"
-          id="id_exam_name"
-          name="exam_name"
-          value="{{ form.exam_name.value|default:"" }}"
-          maxlength="40"
-          placeholder="e.g. AP Biology final"
-          required
-        >
-        <span class="field-hint">{{ form.exam_name.help_text }}</span>
+        <div class="select-wrap">
+          <select class="select" id="id_exam_name" name="exam_name" required>
+            {% for value, label in form.exam_name.field.choices %}
+            <option value="{{ value }}" {% if form.exam_name.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
         {% for error in form.exam_name.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
       </div>
     </div>

@@ -1,0 +1,46 @@
+/* ==========================================================================
+   PDF split utility page
+   ========================================================================== */
+
+.page-count-note {
+  margin-top: 12px;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.range-row .text-input {
+  width: auto;
+  flex: 1;
+  -moz-appearance: textfield;
+}
+
+.range-row .text-input::-webkit-outer-spin-button,
+.range-row .text-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.range-sep {
+  font-size: var(--step--1);
+  color: var(--color-ink-faint);
+  flex-shrink: 0;
+}
+
+.range-remove {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+@media (max-width: 480px) {
+  .range-row { flex-wrap: wrap; }
+  .range-row .text-input { flex: 1 1 100%; }
+}

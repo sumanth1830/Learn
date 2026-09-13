@@ -103,3 +103,4 @@ class State(TypedDict):
     guardrail_category: str
     safety_category: str
     end_reason: Optional[str]
+    correction_occurred: Annotated[int, operator.add]

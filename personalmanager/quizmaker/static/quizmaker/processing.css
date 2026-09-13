@@ -71,3 +71,7 @@
 .processing-error .confirm-icon { margin-bottom: 18px; }
 .processing-error h2 { margin-bottom: 8px; }
 .processing-error p { margin-bottom: 24px; }
+
+.confirm-actions a[hidden] {
+  display: none !important;
+}

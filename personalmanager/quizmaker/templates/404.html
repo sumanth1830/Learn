@@ -1,0 +1,14 @@
+{% extends "./quizmaker/base.html" %}
+
+{% block title %}Page not found — Marginal{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 480px; text-align: center; padding-top: 60px;">
+  <span class="eyebrow">404</span>
+  <h1 style="margin: 14px 0;">This page doesn't exist</h1>
+  <p class="text-soft" style="margin-bottom: 28px;">
+    The link might be broken, or the page may have moved.
+  </p>
+  <a href="{% url 'quiz:home' %}" class="btn">Back to home</a>
+</div>
+{% endblock %}

@@ -31,7 +31,7 @@
 
     {% for question in quiz.questions.all %}
     <div class="quiz-slide {% if forloop.first %}is-active{% endif %}" data-slide-index="{{ forloop.counter0 }}">
-      <div class="quiz-question-text">{{ question.question_text }}</div>
+      <div class="quiz-question-text">{{ question.question_text|linebreaksbr }}</div>
 
       {% if question.hint %}
       <div class="quiz-hint-block">

@@ -48,7 +48,9 @@
     <h2>Something went wrong</h2>
     <p class="text-soft" id="processingErrorMessage">We couldn't generate your quiz from that file.</p>
     <div class="confirm-actions">
-      <a href="{% url 'quiz:quiz_create' %}" class="btn">Try again</a>
+      <a href="{% url 'quiz:quiz_create' %}?from_quiz={{ quiz.pk }}" class="btn" id="reviseButton" hidden>Revise and Resubmit</a>
+      <a href="{% url 'quiz:quiz_retry' pk=quiz.pk %}" class="btn" id="retryButton" hidden>Try Again</a>
+      <a href="{% url 'quiz:quiz_resume' pk=quiz.pk %}" class="btn" id="resumeButton" hidden>Resume</a>
     </div>
   </div>
 
@@ -69,6 +71,20 @@
       statusEl.textContent = phrases[phraseIndex];
     }, 4000);
 
+    function showError(message, buttonId) {
+      clearInterval(phraseInterval);
+      document.getElementById('processingCard').hidden = true;
+      document.getElementById('processingError').hidden = false;
+      document.getElementById('processingErrorMessage').textContent =
+        message || "We couldn't generate your quiz from that file.";
+
+      // Explicitly reset both buttons first, rather than assuming this
+      // function only ever runs once per page load
+      document.getElementById('reviseButton').hidden = true;
+      document.getElementById('retryButton').hidden = true;
+      document.getElementById(buttonId).hidden = false;
+    }
+
     async function checkStatus() {
       try {
         const res = await fetch(statusUrl);
@@ -77,13 +93,12 @@
         if (data.status === "READY") {
           clearInterval(phraseInterval);
           window.location.href = data.redirect_url;
-        } else if (data.status === "FAILED") {
-          clearInterval(phraseInterval);
-          document.getElementById('processingCard').hidden = true;
-          const errorCard = document.getElementById('processingError');
-          errorCard.hidden = false;
-          document.getElementById('processingErrorMessage').textContent =
-            data.error_message || "We couldn't generate your quiz from that file.";
+        } else if (data.status === "FAILED_BLOCKED") {
+          showError(data.error_message, 'reviseButton');
+        } else if (data.status === "FAILED_API_ERROR") {
+          showError(data.error_message, data.can_resume ? 'resumeButton' : 'reviseButton');
+        } else if (data.status === "FAILED_EXHAUSTED") {
+          showError(data.error_message, 'retryButton');
         } else {
           setTimeout(checkStatus, 2000);
         }

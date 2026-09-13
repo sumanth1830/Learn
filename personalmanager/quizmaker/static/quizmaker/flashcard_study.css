@@ -48,28 +48,25 @@
 }
 
 /* Card stage */
-.study-card-stage { perspective: 1400px; }
-
 .study-card {
   display: none;
 }
 
 .study-card.is-active { display: block; }
 
+/* Cross-fade instead of a 3D flip - a 3D transform context
+   (perspective/preserve-3d/backface-visibility) was interfering with
+   native mouse-wheel scrolling on long content, so it's removed
+   entirely rather than worked around. */
 .study-flip-inner {
   position: relative;
   min-height: 340px;
   cursor: pointer;
-  transition: transform 0.5s var(--ease);
-  transform-style: preserve-3d;
 }
-
-.study-flip-inner.is-flipped { transform: rotateY(180deg); }
 
 .study-face {
   position: absolute;
   inset: 0;
-  backface-visibility: hidden;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-bg-card);
@@ -77,18 +74,31 @@
   padding: 40px 36px;
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s var(--ease);
+  pointer-events: none;
+}
+
+.study-flip-inner:not(.is-flipped) .study-face-front,
+.study-flip-inner.is-flipped .study-face-back {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .study-face-front {
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
+  overflow-y: auto;
+  padding-top: 50px;
 }
 
 .study-front-text {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--step-2);
+  font-size: var(--step-1);
   line-height: 1.35;
   margin-bottom: 16px;
 }
@@ -109,7 +119,6 @@
 }
 
 .study-face-back {
-  transform: rotateY(180deg);
   background: var(--color-primary-soft);
   border-color: var(--color-primary);
 }
@@ -205,6 +214,4 @@
 
 @media (max-width: 560px) {
   .study-face { padding: 28px 24px; }
-  .study-front-text { font-size: var(--step-1); }
-  .study-rate-row { flex-direction: column; }
 }

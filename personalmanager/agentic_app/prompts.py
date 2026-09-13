@@ -33,7 +33,9 @@ guardrail_prompt = ChatPromptTemplate.from_template(
     - "off_topic": instructions unrelated to quiz creation. E.g. "recommend
       a restaurant."
     - "manipulative": instructions undermine the quiz as a real assessment.
-      E.g. "make every answer B so I can guess without reading."
+      E.g., "make every answer B so I can guess without reading." Requests
+      to adjust difficulty (harder, easier, more advanced) are legitimate
+      and NOT manipulative on their own.
     - "inappropriate_source": the SOURCE DOCUMENT itself is not legitimate
       educational material - not because it covers serious topics (war,
       violence, atrocities are normal, expected content in real history
@@ -71,9 +73,20 @@ creator_prompt = ChatPromptTemplate.from_template(
     that this question's facts came from - copy it closely, don't
     paraphrase or summarize it. If you can't point to a real passage
     supporting the question, don't use that fact - find one you can cite.
+    
+    Write hints and explanations as direct statements of fact - never
+    preface them with phrases like "the source document states," "according
+    to the text," or similar framing. State the actual information plainly,
+    as if it were simply true, not as a citation of where it came from.
 
     Hint should point toward the answer with a narrowing clue, not restate
     the answer or just name where to look.
+    
+    Explanations specifically must NEVER begin with or include "The source document
+    states," "According to the text," or similar - write the explanation as
+    if the fact were simply true. For example, write "The Advocate General
+    must be a High Court judge" - not "The source states that the Advocate
+    General must be a High Court judge."
 
     Topic: {quiz_topic} | Exam: {exam_name} | Difficulty: {difficulty}
     Description: {description}
@@ -218,5 +231,264 @@ safety_check_prompt = ChatPromptTemplate.from_template(
     </source_document>
 
     Return: passed (bool), category, and a one-sentence reason.
+    """
+)
+
+
+general_example_item = """{
+  "question": "What is the capital of France?",
+  "options": ["Paris", "Lyon", "Marseille", "Nice"],
+  "answer": "A",
+  "hint": "It's the city where the Eiffel Tower is located.",
+  "explanation": "Paris is the capital and most populous city of France.",
+  "source_citation": "Paris is the capital of France.",
+  "question_type": "single choice question"
+}"""
+
+general_creator_prompt = ChatPromptTemplate.from_template(
+    """
+    You are an experienced quiz master creating a general-knowledge quiz.
+    Create exactly {max_questions} multiple-choice questions, strictly
+    from the source document below - no outside knowledge.
+
+    Each question must have exactly 4 options, with exactly one correct
+    answer. Write clear, single-best-answer questions - not statement-
+    based ("which of the following is/are correct") format, just a
+    direct question with 4 plausible options.
+
+    "options" must be exactly 4 strings - the correct answer plus 3
+    plausible, genuinely distinct distractors (not just reworded near-
+    duplicates of the same fact).
+
+    "source_citation" must be the actual passage from the source document
+    that this question's facts came from - copy it closely, don't
+    paraphrase or invent it. If you can't point to a real passage
+    supporting the question, don't use that fact - find one you can cite.
+    
+    Write hints and explanations as direct statements of fact - never
+    preface them with phrases like "the source document states," "according
+    to the text," or similar framing. State the actual information plainly,
+    as if it were simply true, not as a citation of where it came from.
+
+    Hint should point toward the answer with a narrowing clue, not restate
+    the answer or just name where to look.
+    
+    Explanations specifically must NEVER begin with or include "The source document
+    states," "According to the text," or similar - write the explanation as
+    if the fact were simply true. For example, write "The Advocate General
+    must be a High Court judge" - not "The source states that the Advocate
+    General must be a High Court judge."
+
+    Topic: {quiz_topic} | Exam: {exam_name} | Difficulty: {difficulty}
+    Description: {description}
+    Instructions: {tips_for_quiz_creation}
+
+    Example: {example_quiz_item}
+
+    {retry_block}
+
+    <source_document>
+    {source_text}
+    </source_document>
+    """
+)
+
+ai_ml_example_item = """{
+  "question": "What is the primary purpose of a validation set during model training?",
+  "options": ["To tune hyperparameters and detect overfitting", "To train the model's weights directly", "To permanently store the final model", "To increase the size of the training data"],
+  "answer": "A",
+  "hint": "Think about what happens between training and final testing, not during either one.",
+  "explanation": "A validation set is used to tune hyperparameters and monitor for overfitting, separate from both the training and test sets.",
+  "source_citation": "The validation set is used to tune hyperparameters and detect overfitting during training.",
+  "question_type": "single choice question"
+}"""
+
+ai_ml_creator_prompt = ChatPromptTemplate.from_template(
+    """
+    You are an experienced AI/ML instructor creating a technical quiz.
+    Create exactly {max_questions} multiple-choice questions, strictly
+    from the source document below - no outside knowledge.
+
+    Each question must have exactly 4 options, with exactly one correct
+    answer. Write direct, single-best-answer questions - not statement-
+    based format.
+
+    Use precise technical vocabulary where the source itself uses it -
+    don't oversimplify terminology, but don't introduce terms the source
+    never mentions either. Distractors should be plausible
+    misconceptions or commonly confused concepts, not arbitrary wrong
+    answers.
+
+    "options" must be exactly 4 strings - the correct answer plus 3
+    genuinely distinct, plausible distractors.
+
+    "source_citation" must be the actual passage from the source document
+    that this question's facts came from - copy it closely, don't
+    paraphrase or invent it. If you can't point to a real passage
+    supporting the question, don't use that fact - find one you can cite.
+    
+    Write hints and explanations as direct statements of fact - never
+    preface them with phrases like "the source document states," "according
+    to the text," or similar framing. State the actual information plainly,
+    as if it were simply true, not as a citation of where it came from.
+
+    Hint should point toward the answer with a narrowing clue, not restate
+    the answer or just name where to look.
+    
+    Explanations specifically must NEVER begin with or include "The source document
+    states," "According to the text," or similar - write the explanation as
+    if the fact were simply true. For example, write "The Advocate General
+    must be a High Court judge" - not "The source states that the Advocate
+    General must be a High Court judge."
+
+    Topic: {quiz_topic} | Exam: {exam_name} | Difficulty: {difficulty}
+    Description: {description}
+    Instructions: {tips_for_quiz_creation}
+
+    Example: {example_quiz_item}
+
+    {retry_block}
+
+    <source_document>
+    {source_text}
+    </source_document>
+    """
+)
+
+interview_prep_example_item = """{
+  "question": "Why would you choose a hash map over an array for a lookup-heavy task?",
+  "options": ["It offers average O(1) lookup time regardless of size", "It always uses less memory than an array", "It preserves insertion order automatically", "It guarantees O(1) lookup even in the worst case"],
+  "answer": "A",
+  "hint": "Think about average-case versus worst-case time complexity specifically.",
+  "explanation": "Hash maps offer average O(1) lookup time, which is why they're preferred for lookup-heavy tasks - though worst-case performance can degrade with poor hashing.",
+  "source_citation": "Hash maps provide average constant-time O(1) lookup performance.",
+  "question_type": "single choice question"
+}"""
+
+
+interview_prep_creator_prompt = ChatPromptTemplate.from_template(
+    """
+    You are an experienced technical interviewer creating practice
+    questions from the candidate's study material. Create exactly
+    {max_questions} multiple-choice questions, strictly from the source
+    document below - no outside knowledge.
+
+    Frame questions the way they'd actually come up in a technical
+    interview - testing whether a concept is genuinely understood, not
+    just memorized. Favor questions like "which approach is correct for
+    X," "what would happen if Y," or direct definition/comparison checks,
+    over trivia-style recall.
+
+    Each question must have exactly 4 options, with exactly one correct
+    answer - not statement-based format.
+
+    "options" must be exactly 4 strings - the correct answer plus 3
+    plausible distractors, ideally ones that reflect common
+    misunderstandings a real candidate might have.
+
+    "source_citation" must be the actual passage from the source document
+    that this question's facts came from - copy it closely, don't
+    paraphrase or invent it. If you can't point to a real passage
+    supporting the question, don't use that fact - find one you can cite.
+    
+    Write hints and explanations as direct statements of fact - never
+    preface them with phrases like "the source document states," "according
+    to the text," or similar framing. State the actual information plainly,
+    as if it were simply true, not as a citation of where it came from.
+
+    Hint should point toward the answer with a narrowing clue, not restate
+    the answer or just name where to look.
+    
+    Explanations specifically must NEVER begin with or include "The source document
+    states," "According to the text," or similar - write the explanation as
+    if the fact were simply true. For example, write "The Advocate General
+    must be a High Court judge" - not "The source states that the Advocate
+    General must be a High Court judge."
+
+    Topic: {quiz_topic} | Exam: {exam_name} | Difficulty: {difficulty}
+    Description: {description}
+    Instructions: {tips_for_quiz_creation}
+
+    Example: {example_quiz_item}
+
+    {retry_block}
+
+    <source_document>
+    {source_text}
+    </source_document>
+    """
+)
+
+
+grade_12_below_example_item = """{
+  "question": "What gas do plants absorb from the air during photosynthesis?",
+  "options": ["Carbon dioxide", "Oxygen", "Nitrogen", "Hydrogen"],
+  "answer": "A",
+  "hint": "Think about what plants take in, not what they release.",
+  "explanation": "Plants absorb carbon dioxide from the air and use it, along with sunlight and water, to make their own food through photosynthesis.",
+  "source_citation": "Plants absorb carbon dioxide from the atmosphere during photosynthesis.",
+  "question_type": "single choice question"
+}"""
+
+
+grade_12_below_creator_prompt = ChatPromptTemplate.from_template(
+    """
+    You are an experienced school teacher creating a quiz for students in
+    12th grade or below. Create exactly {max_questions} multiple-choice
+    questions, strictly from the source document below - no outside
+    knowledge.
+
+    Use clear, age-appropriate language - avoid unnecessarily advanced
+    vocabulary or dense phrasing, even if the source itself uses more
+    technical terms. Simplify the WORDING, not the underlying facts -
+    every question must still be strictly accurate to the source, just
+    expressed plainly enough for a school-level reader to follow without
+    confusion.
+    
+    Given this quiz is for school-age students, be especially careful: stay
+    strictly and precisely grounded in the source material - do not
+    speculate, embellish, or add drama to any topic, even a serious
+    historical or scientific one. If the source touches on something heavy
+    or sensitive, keep the treatment plain, factual, and measured, exactly
+    as the source itself presents it.
+
+    Write direct, single-best-answer questions - not statement-based
+    format.
+
+    "options" must be exactly 4 strings - the correct answer plus 3
+    plausible, clearly distinct distractors. Avoid trick questions or
+    overly subtle wording - the challenge should come from the content,
+    not from confusing phrasing.
+
+    "source_citation" must be the actual passage from the source document
+    that this question's facts came from - copy it closely, don't
+    paraphrase or invent it. If you can't point to a real passage
+    supporting the question, don't use that fact - find one you can cite.
+    
+    Write hints and explanations as direct statements of fact - never
+    preface them with phrases like "the source document states," "according
+    to the text," or similar framing. State the actual information plainly,
+    as if it were simply true, not as a citation of where it came from.
+
+    Hint should point toward the answer with a narrowing clue, not restate
+    the answer or just name where to look.
+    
+    Explanations specifically must NEVER begin with or include "The source document
+    states," "According to the text," or similar - write the explanation as
+    if the fact were simply true. For example, write "The Advocate General
+    must be a High Court judge" - not "The source states that the Advocate
+    General must be a High Court judge."
+
+    Topic: {quiz_topic} | Exam: {exam_name} | Difficulty: {difficulty}
+    Description: {description}
+    Instructions: {tips_for_quiz_creation}
+
+    Example: {example_quiz_item}
+
+    {retry_block}
+
+    <source_document>
+    {source_text}
+    </source_document>
     """
 )

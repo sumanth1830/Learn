@@ -56,6 +56,176 @@
   flex-wrap: wrap;
 }
 
+/* ==========================================================================
+   Post-quiz review prompt — minimal, non-blocking, shown once
+   ========================================================================== */
+
+.review-prompt {
+  padding: 22px 24px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.review-prompt-header { margin-bottom: 14px; }
+.review-prompt-header .eyebrow { display: block; margin-bottom: 4px; }
+.review-prompt-header h3 { font-size: var(--step-1); }
+
+.review-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.review-star {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-border-strong);
+  transition: color 0.15s var(--ease), transform 0.1s var(--ease);
+}
+
+.review-star:hover,
+.review-star:focus-visible,
+.review-star.is-preview {
+  color: var(--color-accent);
+}
+
+.review-star.is-selected { color: var(--color-accent-dark); }
+
+.review-star:active { transform: scale(0.92); }
+
+.review-star svg { width: 26px; height: 26px; }
+
+.review-star-label {
+  margin-top: 10px;
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
+  min-height: 1.4em;
+}
+
+.review-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.review-match-row .field-label { margin-bottom: 0; }
+.review-match-row .select-wrap { max-width: 160px; }
+
+.review-prompt-actions { margin-top: 18px; }
+
+/* Review card exit animation (submitted -> collapses away) */
+.review-prompt.is-submitting {
+  transition: opacity 0.3s var(--ease), max-height 0.35s var(--ease), margin 0.35s var(--ease), padding 0.35s var(--ease);
+  overflow: hidden;
+}
+
+.review-prompt.is-collapsed {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+}
+
+/* ==========================================================================
+   Toast (shared by review + flag submissions)
+   ========================================================================== */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  background: var(--color-primary-dark);
+  color: var(--color-bg-card-raised);
+  padding: 13px 22px;
+  border-radius: var(--radius-sm);
+  font-size: var(--step--1);
+  font-weight: 700;
+  box-shadow: var(--shadow-card-hover);
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   Report / flag
+   ========================================================================== */
+
+.quiz-flag-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.quiz-flag-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-ink-faint);
+  cursor: pointer;
+  transition: color 0.15s var(--ease);
+}
+
+.quiz-flag-link:hover { color: var(--color-error); }
+.quiz-flag-link.is-flagged { color: var(--color-ink-faint); cursor: default; }
+
+.review-card-header { justify-content: space-between; }
+
+.icon-btn.is-flagged {
+  color: var(--color-ink-faint);
+  cursor: default;
+  background: var(--color-border);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 38, 33, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 200;
+}
+
+.modal-overlay[hidden] {
+  display: none !important;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+}
+
 /* Section heading between hero and question review */
 .results-review-heading {
   margin-bottom: 18px;
@@ -139,7 +309,32 @@
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 16px;
+  justify-content: space-between;
 }
+
+.review-flag-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--color-error);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s var(--ease);
+}
+
+.review-flag-trigger:hover {
+  color: var(--color-accent-dark);
+}
+
+.review-flag-trigger.is-flagged {
+  color: var(--color-ink-soft);
+  cursor: default;
+}
+
+.review-flag-trigger svg { width: 16px; height: 16px; }
 
 .review-status-icon {
   width: 26px;
@@ -293,4 +488,5 @@
 @media (max-width: 560px) {
   .results-hero { padding: 32px 24px; }
   .review-card { padding: 18px; }
+  .modal-card { padding: 22px; }
 }
