@@ -1,4 +1,6 @@
 {
   "$schema": "https://schema.railpack.com",
-  "buildAptPackages": ["libgl1", "libglib2.0-0"]
+  "deploy": {
+    "aptPackages": ["...", "libgl1", "libglib2.0-0"]
+  }
 }
