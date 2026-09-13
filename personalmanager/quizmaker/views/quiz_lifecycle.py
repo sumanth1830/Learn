@@ -1,10 +1,11 @@
+import os
 import uuid
 
+import boto3
 import pdfplumber
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -77,10 +78,14 @@ class QuizCreateView(LoginRequiredMixin, CreateView):
         quiz.status = "PENDING"
         quiz.save()
 
-        temp_name = f"tmp_uploads/{uuid.uuid4()}_{pdf_file.name}"
-        saved_path = default_storage.save(temp_name, pdf_file)
-        full_path = default_storage.path(saved_path)
-        generate_quiz_task.delay(quiz.pk, full_path)
+        # Django and the Celery worker run in separate containers with no
+        # shared filesystem - the file has to go to real object storage,
+        # not local disk, so the worker can actually retrieve it later.
+        s3_client = boto3.client("s3", endpoint_url=os.getenv("AWS_ENDPOINT_URL"))
+        file_key = f"tmp_uploads/{uuid.uuid4()}_{pdf_file.name}"
+        s3_client.upload_fileobj(pdf_file, os.getenv("AWS_S3_BUCKET_NAME"), file_key)
+
+        generate_quiz_task.delay(quiz.pk, file_key)
 
         return redirect("quiz:processing", pk=quiz.pk)
 

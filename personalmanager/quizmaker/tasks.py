@@ -1,5 +1,7 @@
 import os
 import time
+import boto3
+import tempfile
 
 import mlflow
 from celery import shared_task
@@ -332,8 +334,12 @@ def _run_quiz_generation(quiz, source_text):
 
 
 @shared_task
-def generate_quiz_task(quiz_id, pdf_path):
-    """Fresh quiz creation - extracts a new PDF, then runs the shared core."""
+def generate_quiz_task(quiz_id, file_key):
+    """
+    Fresh quiz creation - downloads the PDF from bucket storage (since
+    Django and this Celery worker run in separate containers with no
+    shared filesystem), extracts it, then runs the shared core.
+    """
     print("Generating Quiz....")
     try:
         quiz = Quiz.objects.get(pk=quiz_id)
@@ -343,8 +349,16 @@ def generate_quiz_task(quiz_id, pdf_path):
     quiz.status = "PROCESSING"
     quiz.save(update_fields=["status"])
 
+    s3_client = boto3.client("s3", endpoint_url=os.getenv("AWS_ENDPOINT_URL"))
+    bucket_name = os.getenv("AWS_S3_BUCKET_NAME")
+    local_path = None
+
     try:
-        source_text = extract_text_from_pdf(pdf_path)
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+            s3_client.download_fileobj(bucket_name, file_key, tmp)
+            local_path = tmp.name
+
+        source_text = extract_text_from_pdf(local_path)
         SourceText.objects.create(quiz=quiz, source_text=source_text)
     except Exception as e:
         quiz.status = "FAILED_API_ERROR"
@@ -352,8 +366,12 @@ def generate_quiz_task(quiz_id, pdf_path):
         quiz.save(update_fields=["status", "error_message"])
         return
     finally:
-        if pdf_path and os.path.exists(pdf_path):
-            os.remove(pdf_path)
+        if local_path and os.path.exists(local_path):
+            os.remove(local_path)
+        try:
+            s3_client.delete_object(Bucket=bucket_name, Key=file_key)
+        except Exception as e:
+            print(f"[quiz {quiz_id}] couldn't delete bucket object {file_key}: {e}")
 
     _run_quiz_generation(quiz, source_text)
 
