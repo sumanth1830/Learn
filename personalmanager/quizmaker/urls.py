@@ -1,5 +1,7 @@
 from django.urls import include, path
 from . import views
+from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
 
 # app's namespace
 app_name="quiz"
@@ -30,10 +32,24 @@ urlpatterns = [
     path("quiz/<int:pk>/create-flashcards", views.create_flashcards_from_quiz, name="create_flashcards_from_quiz"),
 
     # Login
-    path("account/", include("django.contrib.auth.urls")),
+
     # path("logout/", views.logout_view, name="logout"),
     path("signup/", views.SignUp.as_view(), name="signup"),
     path("profile/", views.profile_view, name="profile"),
+    path(
+        "account/password_reset/",
+        auth_views.PasswordResetView.as_view(
+            success_url=reverse_lazy("quiz:password_reset_done"),
+            html_email_template_name="registration/password_reset_email_html.html",
+        ),
+        name="password_reset",
+    ),
+    path(
+        "account/reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(success_url=reverse_lazy("quiz:password_reset_complete")),
+        name="password_reset_confirm",
+    ),
+    path("account/", include("django.contrib.auth.urls")),
 
     # Utility Feature links
     path("pdf-split/", views.pdf_split_view, name="pdf_split"),

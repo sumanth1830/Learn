@@ -15,6 +15,14 @@
   margin-bottom: 40px;
 }
 
+.dash-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--step-1);
+  color: var(--color-primary-dark);
+  margin-bottom: 10px;
+}
+
 .dashboard-intro .eyebrow { display: block; margin-bottom: 12px; }
 .dashboard-intro h1 { margin-bottom: 14px; }
 .dashboard-intro p { color: var(--color-ink-soft); font-size: var(--step-1); }
@@ -326,6 +334,24 @@
   padding: 20px;
   font-size: 12px;
   color: var(--color-ink-faint);
+}
+
+.contact-callout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 12px 18px;
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--step--1);
+  color: var(--color-primary-dark);
+}
+
+.contact-callout a {
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 @media (max-width: 900px) {

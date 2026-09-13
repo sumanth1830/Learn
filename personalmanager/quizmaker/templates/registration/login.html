@@ -1,4 +1,4 @@
-{% extends "../quizmaker/base.html" %}
+{% extends "quizmaker/base.html" %}
 {% load static %}
 
 {% block title %}Log in — Marginal{% endblock %}
@@ -61,7 +61,7 @@
           </div>
           {% if field.name == "password" %}
           <div class="auth-forgot">
-            <a href="#" title="Coming soon">Forgot your password?</a>
+            <a href="{% url 'quiz:password_reset' %}">Forgot password?</a>
           </div>
           {% endif %}
           {% for error in field.errors %}

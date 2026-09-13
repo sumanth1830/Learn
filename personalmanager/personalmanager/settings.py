@@ -35,18 +35,18 @@ DEBUG = True
 
 LOGIN_REDIRECT_URL = "quiz:home"
 LOGOUT_REDIRECT_URL = "quiz:home"
-LOGIN_URL = "login"
+LOGIN_URL = "quiz:login"
 
 # Application definition
 
 INSTALLED_APPS = [
+    "quizmaker.apps.QuizmakerConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "quizmaker.apps.QuizmakerConfig"
 ]
 
 MIDDLEWARE = [
@@ -142,7 +142,14 @@ STATIC_URL = "static/"
 
 MAILERS = {
     "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
+        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+        "OPTIONS": {
+            "host": "smtp.gmail.com",
+            "port": 587,
+            "use_tls": True,
+            "username": os.getenv("EMAIL_HOST_USER"),
+            "password": os.getenv("EMAIL_HOST_PASSWORD"),
+        },
     },
 }
 
@@ -155,5 +162,3 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_TIME_LIMIT = 1200
 CELERY_TASK_SOFT_TIME_LIMIT = 1080
-
-# Postgress DB
