@@ -160,15 +160,19 @@ MAILERS = {
     #         "password": os.getenv("EMAIL_HOST_PASSWORD"),
     #     },
     # },
+    # "default": {
+    #     "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+    #     "OPTIONS": {
+    #         "host": "smtp.resend.com",
+    #         "port": 465,
+    #         "use_ssl": True,
+    #         "username": "resend",
+    #         "password": os.getenv("RESEND_API_KEY"),
+    #     },
+    # },
     "default": {
-        "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
-        "OPTIONS": {
-            "host": "smtp.resend.com",
-            "port": 465,
-            "use_ssl": True,
-            "username": "resend",
-            "password": os.getenv("RESEND_API_KEY"),
-        },
+        "BACKEND": "quizmaker.email_backend.ResendEmailBackend",
+        "OPTIONS": {},
     },
 }
 DEFAULT_FROM_EMAIL = "support@marginal.digital"
