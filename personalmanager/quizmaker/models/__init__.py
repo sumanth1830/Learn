@@ -5,6 +5,7 @@ from .flashcard import FlashCard
 from .access import PilotAccessCode
 from .generation import (
     QuizAggregateMetrics, QuizGenerationLog, SourceText, QuizNodeCost,
+    QuizTrace
 )
 from .feedback import QuizReview, QuizFlag
 
@@ -15,5 +16,5 @@ __all__ = [
     "FlashCard",
     "PilotAccessCode",
     "QuizAggregateMetrics", "QuizGenerationLog", "SourceText", "QuizNodeCost",
-    "QuizReview", "QuizFlag",
+    "QuizReview", "QuizFlag", "QuizTrace"
 ]

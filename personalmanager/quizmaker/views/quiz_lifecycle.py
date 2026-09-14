@@ -114,8 +114,8 @@ def quiz_status_view(request, pk):
     elif quiz.status in ("FAILED_BLOCKED", "FAILED_EXHAUSTED", "FAILED_API_ERROR"):
         data["error_message"] = quiz.error_message
         if quiz.status == "FAILED_API_ERROR":
-            has_thread_id = bool(getattr(getattr(quiz, "generation_log", None), "thread_id", ""))
-            data["can_resume"] = has_thread_id
+            has_trace = quiz.traces.exists()
+            data["can_resume"] = has_trace
     return JsonResponse(data)
 
 

@@ -8,7 +8,7 @@ from celery import shared_task
 
 from .models import (
     Question, Answer, Quiz, SourceText, QuizAggregateMetrics,
-    QuizGenerationLog, QuizNodeCost,
+    QuizGenerationLog, QuizNodeCost, QuizTrace,
 )
 from celery.exceptions import SoftTimeLimitExceeded
 from agentic_app.workflow import graph
@@ -144,8 +144,6 @@ def _finalize_quiz_generation(quiz, final_state, trace_id, node_breakdown, total
     QuizGenerationLog.objects.update_or_create(
         quiz=quiz,
         defaults=dict(
-            mlflow_trace_id=trace_id or "",
-            thread_id=attempt_id,
             structural_feedback=final_state.get("retry_feedback", "") or "",
             evaluation_feedback=[
                 fi.model_dump() if hasattr(fi, "model_dump") else fi
@@ -260,8 +258,6 @@ def _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total
     QuizGenerationLog.objects.update_or_create(
         quiz=quiz,
         defaults=dict(
-            mlflow_trace_id=trace_id or "",
-            thread_id=attempt_id,
             structural_feedback=final_state.get("retry_feedback", "") or "",
             evaluation_feedback=[],
             guardrail_reason=final_state.get("guardrail_reason", "") or "",
@@ -286,19 +282,14 @@ def _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total
 
 
 def _run_quiz_generation(quiz, source_text):
-    """
-    Fresh graph run - used by both original creation and FAILED_EXHAUSTED
-    retry. Always starts a brand new thread_id, never resumes.
-    """
     final_state = {}
     trace_id = None
     node_breakdown = []
     total_cost = 0.0
     total_time_seconds = None
     attempt_id = f"{quiz.pk}-{int(time.time())}"
-    QuizGenerationLog.objects.update_or_create(
-        quiz=quiz, defaults={"thread_id": attempt_id}
-    )
+    crashed = False
+    crash_type = None
 
     try:
         quiz_details = QuizDetails(
@@ -309,33 +300,39 @@ def _run_quiz_generation(quiz, source_text):
             tips_for_quiz_creation=quiz.tips_for_quiz_creation,
             max_questions=quiz.max_questions,
         )
-
-        initial_state = {
-            "quiz_details": quiz_details,
-            "source_text": source_text,
-        }
+        initial_state = {"quiz_details": quiz_details, "source_text": source_text}
         config = {"configurable": {"thread_id": attempt_id}}
 
         final_state = graph.invoke(initial_state, config)
-        trace_id, node_breakdown, total_cost, total_time_seconds = _fetch_trace_data(quiz)
-
-        _finalize_quiz_generation(
-            quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, attempt_id
-        )
 
     except SoftTimeLimitExceeded:
-        _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, attempt_id, "timeout")
-        quiz.status = "FAILED_API_ERROR"
-        quiz.error_message = "Generation took too long and was stopped. Try a shorter document or fewer questions."
-        quiz.save(update_fields=["status", "error_message"])
-        raise
-
+        crashed = True
+        crash_type = "timeout"
     except Exception as e:
-        _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, attempt_id, "exception")
+        crashed = True
+        crash_type = "exception"
+        crash_exception = e
+    finally:
+        # Pre LLM Cost fix if the generation fails
+        trace_id, node_breakdown, total_cost, total_time_seconds = _fetch_trace_data(quiz)
+
+        if trace_id:
+            QuizTrace.objects.get_or_create(
+                quiz=quiz, mlflow_trace_id=trace_id,
+                defaults={"attempt_id": attempt_id, "crashed": crashed},
+            )
+
+    if crashed:
+        _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, attempt_id, crash_type)
         quiz.status = "FAILED_API_ERROR"
-        quiz.error_message = str(e)
+        quiz.error_message = (
+            "Generation took too long and was stopped. Try a shorter document or fewer questions."
+            if crash_type == "timeout" else str(crash_exception)
+        )
         quiz.save(update_fields=["status", "error_message"])
-        raise
+        raise crash_exception if crash_type == "exception" else SoftTimeLimitExceeded()
+
+    _finalize_quiz_generation(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, attempt_id)
 
 
 @shared_task
@@ -420,28 +417,19 @@ def retry_quiz_task(quiz_id):
 
 @shared_task
 def resume_quiz_task(quiz_id):
-    """
-    FAILED_API_ERROR resume - uses the SAME thread_id the crashed run was
-    using, so the checkpointer picks up from wherever it last left off,
-    rather than starting a fresh graph run. Only meaningful now that
-    PostgresSaver makes checkpoints durable across process restarts.
-    """
     try:
         quiz = Quiz.objects.get(pk=quiz_id)
     except Quiz.DoesNotExist:
         return
 
-    try:
-        thread_id = quiz.generation_log.thread_id
-    except QuizGenerationLog.DoesNotExist:
-        thread_id = None
-
-    if not thread_id:
+    last_trace = quiz.traces.order_by("-created_at").first()
+    if not last_trace:
         quiz.status = "FAILED_API_ERROR"
         quiz.error_message = "Nothing to resume - please create a new quiz."
         quiz.save(update_fields=["status", "error_message"])
         return
 
+    thread_id = last_trace.attempt_id
     config = {"configurable": {"thread_id": thread_id}}
 
     try:
@@ -450,9 +438,6 @@ def resume_quiz_task(quiz_id):
         state_snapshot = None
 
     if not state_snapshot or not state_snapshot.values:
-        # thread_id was recorded but no real checkpoint exists - the
-        # crash happened before graph.invoke() ever started, or the
-        # checkpoint genuinely doesn't exist for some other reason.
         quiz.status = "FAILED_API_ERROR"
         quiz.error_message = "Nothing to resume - please create a new quiz."
         quiz.save(update_fields=["status", "error_message"])
@@ -466,32 +451,37 @@ def resume_quiz_task(quiz_id):
     node_breakdown = []
     total_cost = 0.0
     total_time_seconds = None
+    crashed = False
+    crash_type = None
 
     try:
-        # Passing None as input, same thread_id - this is what tells
-        # LangGraph to resume from the last checkpoint rather than start
-        # a fresh run with new initial state.
         final_state = graph.invoke(None, config)
-        trace_id, node_breakdown, total_cost, total_time_seconds = _fetch_trace_data(quiz)
-
-        _finalize_quiz_generation(
-            quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, thread_id
-        )
-
     except SoftTimeLimitExceeded:
-        _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, thread_id, "timeout")
-        quiz.status = "FAILED_API_ERROR"
-        quiz.error_message = "Resuming took too long and was stopped."
-        quiz.save(update_fields=["status", "error_message"])
-        raise
-
+        crashed = True
+        crash_type = "timeout"
     except Exception as e:
-        _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, thread_id, "exception")
-        quiz.status = "FAILED_API_ERROR"
-        quiz.error_message = str(e)
-        quiz.save(update_fields=["status", "error_message"])
-        raise
+        crashed = True
+        crash_type = "exception"
+        crash_exception = e
+    finally:
+        trace_id, node_breakdown, total_cost, total_time_seconds = _fetch_trace_data(quiz)
+        if trace_id:
+            QuizTrace.objects.get_or_create(
+                quiz=quiz, mlflow_trace_id=trace_id,
+                defaults={"attempt_id": thread_id, "crashed": crashed},
+            )
 
+    if crashed:
+        _record_crash(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, thread_id, crash_type)
+        quiz.status = "FAILED_API_ERROR"
+        quiz.error_message = (
+            "Resuming took too long and was stopped."
+            if crash_type == "timeout" else str(crash_exception)
+        )
+        quiz.save(update_fields=["status", "error_message"])
+        raise crash_exception if crash_type == "exception" else SoftTimeLimitExceeded()
+
+    _finalize_quiz_generation(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, thread_id)
 
 @shared_task
 def cleanup_stuck_quizzes():

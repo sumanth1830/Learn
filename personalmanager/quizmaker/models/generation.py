@@ -22,13 +22,10 @@ class QuizAggregateMetrics(TimeStampedModel):
 
 class QuizGenerationLog(TimeStampedModel):
     quiz = models.OneToOneField(Quiz, on_delete=models.CASCADE, related_name="generation_log")
-
-    mlflow_trace_id = models.CharField(max_length=100, blank=True, default="")
     structural_feedback = models.TextField(blank=True, default="")
     evaluation_feedback = models.JSONField(default=list, blank=True)
     guardrail_reason = models.TextField(blank=True, default="")
     safety_reason = models.TextField(blank=True, default="")
-    thread_id = models.CharField(max_length=60, blank=True, default="")
 
     def __str__(self):
         return f"Generation log for {self.quiz}"
@@ -56,3 +53,20 @@ class QuizNodeCost(TimeStampedModel):
 
     def __str__(self):
         return f"{self.quiz} - {self.agent} (${self.cost:.4f})"
+
+
+class QuizTrace(TimeStampedModel):
+    """
+    To save traces of a quiz, as we can have multiple traces
+    when generation fails midway
+    """
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name="traces")
+    attempt_id = models.CharField(max_length=60)
+    mlflow_trace_id = models.CharField(max_length=100)
+    crashed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = [("quiz", "mlflow_trace_id")]
+
+    def __str__(self):
+        return f"{self.quiz} - {self.attempt_id} ({self.mlflow_trace_id})"
