@@ -20,7 +20,6 @@ import atexit
 
 load_dotenv()
 os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
-os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK_ALLOWED_MODULES", "agentic_app.schema")
 os.environ["MLFLOW_ENABLE_ASYNC_TRACE_LOGGING"] = "false"
 DB_URI = (
     f"postgresql://{quote_plus(os.getenv('DB_USER'))}:{quote_plus(os.getenv('DB_PASSWORD'))}"

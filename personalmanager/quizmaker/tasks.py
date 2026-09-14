@@ -5,7 +5,6 @@ import tempfile
 
 import mlflow
 from celery import shared_task
-from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorOptions
 
 from .models import (
     Question, Answer, Quiz, SourceText, QuizAggregateMetrics,
@@ -14,8 +13,7 @@ from .models import (
 from celery.exceptions import SoftTimeLimitExceeded
 from agentic_app.workflow import graph
 from agentic_app.schema import QuizDetails
-from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.datamodel.base_models import InputFormat
+
 
 
 GUARDRAIL_USER_MESSAGES = {
@@ -36,6 +34,11 @@ def extract_text_from_pdf(pdf_path):
     """
     Docling extraction - handles PDF extraction
     """
+    # Moving imports to make sure they are only used during Celery Process
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorOptions
+
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_table_structure = True
     pipeline_options.accelerator_options = AcceleratorOptions(num_threads=8, device="cpu")
@@ -336,9 +339,10 @@ def _run_quiz_generation(quiz, source_text):
 @shared_task
 def generate_quiz_task(quiz_id, file_key):
     """
-    Fresh quiz creation - downloads the PDF from bucket storage (since
-    Django and this Celery worker run in separate containers with no
-    shared filesystem), extracts it, then runs the shared core.
+    Fresh quiz creation - downloads the PDF from bucket storage in
+    production (Django and this Celery worker run in separate containers
+    with no shared filesystem). In local dev, both processes run on the
+    same machine, so file_key is just a plain local path already on disk.
     """
     print("Generating Quiz....")
     try:
@@ -349,14 +353,20 @@ def generate_quiz_task(quiz_id, file_key):
     quiz.status = "PROCESSING"
     quiz.save(update_fields=["status"])
 
-    s3_client = boto3.client("s3", endpoint_url=os.getenv("AWS_ENDPOINT_URL"))
-    bucket_name = os.getenv("AWS_S3_BUCKET_NAME")
+    using_bucket = bool(os.getenv("AWS_ENDPOINT_URL"))
     local_path = None
+    s3_client = None
+    bucket_name = None
 
     try:
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-            s3_client.download_fileobj(bucket_name, file_key, tmp)
-            local_path = tmp.name
+        if using_bucket:
+            s3_client = boto3.client("s3", endpoint_url=os.getenv("AWS_ENDPOINT_URL"))
+            bucket_name = os.getenv("AWS_S3_BUCKET_NAME")
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                s3_client.download_fileobj(bucket_name, file_key, tmp)
+                local_path = tmp.name
+        else:
+            local_path = file_key  # already a real local path in dev
 
         source_text = extract_text_from_pdf(local_path)
         SourceText.objects.create(quiz=quiz, source_text=source_text)
@@ -366,15 +376,20 @@ def generate_quiz_task(quiz_id, file_key):
         quiz.save(update_fields=["status", "error_message"])
         return
     finally:
-        if local_path and os.path.exists(local_path):
-            os.remove(local_path)
-        try:
-            s3_client.delete_object(Bucket=bucket_name, Key=file_key)
-        except Exception as e:
-            print(f"[quiz {quiz_id}] couldn't delete bucket object {file_key}: {e}")
+        if using_bucket:
+            if local_path and os.path.exists(local_path):
+                os.remove(local_path)
+            try:
+                s3_client.delete_object(Bucket=bucket_name, Key=file_key)
+            except Exception as e:
+                print(f"[quiz {quiz_id}] couldn't delete bucket object {file_key}: {e}")
+        else:
+            if local_path and os.path.exists(local_path):
+                os.remove(local_path)
 
+    # Only reached if the try block above completed with no exception -
+    # source_text is guaranteed to be defined here, not just assumed so.
     _run_quiz_generation(quiz, source_text)
-
 
 @shared_task
 def retry_quiz_task(quiz_id):
