@@ -1,6 +1,7 @@
 import os
 from celery import Celery
 import billiard
+from celery.schedules import crontab
 
 billiard.context._force_start_method('spawn')
 os.environ['FORKED_BY_MULTIPROCESSING'] = '1'
@@ -14,3 +15,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "personalmanager.settings")
 app = Celery("personalmanager")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
+
+app.conf.beat_schedule = {
+    "cleanup-stuck-quizzes": {
+        "task": "quizmaker.tasks.cleanup_stuck_quizzes",
+        "schedule": crontab(minute="*/30"),
+    },
+}

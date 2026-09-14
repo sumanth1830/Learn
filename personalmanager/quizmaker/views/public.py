@@ -251,8 +251,9 @@ def dashboard_view(request):
     # --- 7. Footer counts -----------------------------------------------
     total_registrations = User.objects.count()
     total_flashcards = FlashCard.objects.count()
-    avg_questions = round(Quiz.objects.aggregate(v=Avg("max_questions"))["v"] or 0, 1)
-    difficulty_counts = Quiz.objects.values("difficulty").annotate(count=Count("id")).order_by("difficulty")
+    avg_questions = round(Quiz.objects.filter(status="READY").aggregate(v=Avg("max_questions"))["v"] or 0, 1)
+    difficulty_counts = Quiz.objects.filter(status="READY").values("difficulty").annotate(count=Count("id")).order_by(
+        "difficulty")
 
     # --- Quiz growth: cumulative count by day, plus today's count ---------
     today = timezone.now().date()

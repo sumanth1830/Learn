@@ -13,6 +13,8 @@ from .models import (
 from celery.exceptions import SoftTimeLimitExceeded
 from agentic_app.workflow import graph
 from agentic_app.schema import QuizDetails
+from django.utils import timezone
+from datetime import timedelta
 
 
 
@@ -489,3 +491,15 @@ def resume_quiz_task(quiz_id):
         quiz.error_message = str(e)
         quiz.save(update_fields=["status", "error_message"])
         raise
+
+
+@shared_task
+def cleanup_stuck_quizzes():
+    cutoff = timezone.now() - timedelta(minutes=20)
+    stuck_quizzes = Quiz.objects.filter(status="PROCESSING", updated_at__lt=cutoff)
+
+    for quiz in stuck_quizzes:
+        quiz.status = "FAILED_API_ERROR"
+        quiz.error_message = "Something went wrong during generation. Please try again."
+        quiz.save(update_fields=["status", "error_message"])
+        print(f"[cleanup] marked quiz {quiz.pk} as failed - stuck in PROCESSING since {quiz.updated_at}")
