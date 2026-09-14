@@ -1,6 +1,7 @@
 {
   "$schema": "https://schema.railpack.com",
   "deploy": {
-    "aptPackages": ["...", "libgl1", "libglib2.0-0"]
+    "aptPackages": ["...", "libgl1", "libglib2.0-0"],
+    "startCommand": "chmod -R a+rX /app/.venv && HF_HOME=/tmp/hf_cache celery -A personalmanager worker --beat --loglevel=info --concurrency=2 --uid=65534 --gid=65534"
   }
 }
