@@ -21,4 +21,9 @@ app.conf.beat_schedule = {
         "task": "quizmaker.tasks.cleanup_stuck_quizzes",
         "schedule": crontab(minute="*/30"),
     },
+    # PIB Ingestion
+    "poll-pib-feed": {
+        "task": "quizmaker.tasks.poll_pib_feed_task",
+        "schedule": crontab(minute=0, hour="*/6"),
+    },
 }

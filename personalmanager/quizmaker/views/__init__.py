@@ -13,6 +13,8 @@ from .flashcards import (
     flashcard_study_view, create_flashcards_from_quiz, flashcard_review_submit_view
 )
 from .history import QuizHistoryDelete, quizzes_view
+from .current_affairs import current_affairs_view
+
 
 __all__ = [
     "pdf_split_view", "home", "profile_view", "login_view", "SignUp", "dashboard_view",
@@ -22,5 +24,6 @@ __all__ = [
     "FlashCardCreate", "FlashCardUpdate", "FlashCardDelete", "flash_card_list_view",
     "flashcard_topic_detail_view", "flashcard_topic_delete_view", "flashcard_review_submit_view",
     "flashcard_study_view", "create_flashcards_from_quiz",
-    "QuizHistoryDelete", "quizzes_view"
+    "QuizHistoryDelete", "quizzes_view",
+    "current_affairs_view"
 ]

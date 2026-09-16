@@ -32,6 +32,9 @@ urlpatterns = [
     path("quiz/<int:pk>/create-flashcards", views.create_flashcards_from_quiz, name="create_flashcards_from_quiz"),
     path("quizzes/", views.quizzes_view, name="quizzes"),
 
+    # News Ingestion
+    path("current-affairs/", views.current_affairs_view, name="current_affairs"),
+
     # Login
 
     # path("logout/", views.logout_view, name="logout"),

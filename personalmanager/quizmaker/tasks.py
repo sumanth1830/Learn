@@ -15,6 +15,7 @@ from agentic_app.workflow import graph
 from agentic_app.schema import QuizDetails
 from django.utils import timezone
 from datetime import timedelta
+from quizmaker.pib_ingestion import poll_pib_feed
 
 
 
@@ -493,3 +494,10 @@ def cleanup_stuck_quizzes():
         quiz.error_message = "Something went wrong during generation. Please try again."
         quiz.save(update_fields=["status", "error_message"])
         print(f"[cleanup] marked quiz {quiz.pk} as failed - stuck in PROCESSING since {quiz.updated_at}")
+
+
+@shared_task
+def poll_pib_feed_task():
+    count = poll_pib_feed()
+    print(f"[PIB poll] saved {count} new articles")
+    return count

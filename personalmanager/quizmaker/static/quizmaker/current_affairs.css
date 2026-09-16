@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Current Affairs page
+   ========================================================================== */
+
+.ca-header {
+  margin-bottom: 20px;
+}
+
+.ca-date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ca-date-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-0);
+  color: var(--color-ink);
+}
+
+.ca-digest-card {
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.ca-digest-card .eyebrow { color: var(--color-primary-dark); }
+.ca-digest-card p { margin: 10px 0 16px; color: var(--color-ink); }
+
+.ca-digest-placeholder {
+  text-align: center;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.ca-authority-group {
+  margin-bottom: 28px;
+}
+
+.ca-authority-group h3 {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-faint);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ca-article-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ca-article-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: background 0.15s var(--ease);
+}
+
+.ca-article-row:hover {
+  background: var(--color-bg-card-raised);
+}
+
+.ca-article-title {
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.ca-article-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-faint);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .ca-date-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ca-article-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

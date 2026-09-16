@@ -9,6 +9,7 @@ from .generation import (
 )
 from .engagement import UserActivity
 from .feedback import QuizReview, QuizFlag
+from .news import NewsArticle, DailyDigest
 
 __all__ = [
     "TimeStampedModel",
@@ -18,5 +19,6 @@ __all__ = [
     "PilotAccessCode",
     "QuizAggregateMetrics", "QuizGenerationLog", "SourceText", "QuizNodeCost",
     "QuizReview", "QuizFlag", "QuizTrace",
-    "UserActivity"
+    "UserActivity",
+    "NewsArticle", "DailyDigest"
 ]
