@@ -101,9 +101,9 @@ def home(request):
     return render(request, "quizmaker/home.html")
 
 
-@login_required
-def profile_view(request):
-    return render(request, 'quizmaker/profile.html')
+# @login_required
+# def profile_view(request):
+#     return render(request, 'quizmaker/profile.html')
 
 
 def login_view(request):

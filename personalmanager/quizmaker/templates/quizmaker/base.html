@@ -33,9 +33,9 @@
             <a href="{% url 'quiz:pdf_split' %}" class="{% block nav_split %}{% endblock %}">Split PDF</a>
             <a href="{% url 'quiz:dashboard' %}" class="{% block nav_dashboard %}{% endblock %}">How it works</a>
             {% if user.is_authenticated %}
-              <a href="{% url 'quiz:quiz_create' %}">New quiz</a>
-              <a href="{% url 'quiz:flashcard_list' %}">Flashcards</a>
-              <a href="{% url 'quiz:quiz_history_list' %}">Progress</a>
+              <a href="{% url 'quiz:quiz_create' %}" class="{% block nav_upload %}{% endblock %}">New quiz</a>
+              <a href="{% url 'quiz:flashcard_list' %}" class="{% block nav_flashcards %}{% endblock %}">Flashcards</a>
+              <a href="{% url 'quiz:quizzes' %}" class="{% block nav_progress %}{% endblock %}">Quizzes</a>
             {% endif %}
           </nav>
 

@@ -1,13 +1,14 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from ..forms import FlashCardForm
-from ..models import FlashCard, QuizHistory
+from ..models import FlashCard, QuizHistory, UserActivity
 
 
 class FlashCardCreate(LoginRequiredMixin, CreateView):
@@ -141,3 +142,25 @@ def flashcard_study_view(request, topic):
         'topic': topic,
         'cards': cards
     })
+
+
+@login_required
+def flashcard_review_submit_view(request, pk):
+    flashcard = get_object_or_404(FlashCard, pk=pk, creator=request.user)
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request."}, status=405)
+
+    rating = request.POST.get("rating")  # "learning" or "mastered"
+
+    flashcard.last_reviewed_at = timezone.now()
+    if rating == "mastered":
+        flashcard.correct_streak += 1
+    else:
+        flashcard.correct_streak = 0
+    flashcard.save(update_fields=["last_reviewed_at", "correct_streak"])
+
+    UserActivity.objects.get_or_create(
+        user=request.user, activity_date=timezone.now().date()
+    )
+
+    return JsonResponse({"success": True})

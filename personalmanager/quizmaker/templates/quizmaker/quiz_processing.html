@@ -53,6 +53,19 @@
       <a href="{% url 'quiz:quiz_resume' pk=quiz.pk %}" class="btn" id="resumeButton" hidden>Resume</a>
     </div>
   </div>
+  <div class="card processing-ready" id="processingReady" hidden>
+    <div class="confirm-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>Your quiz is ready!</h2>
+    <p class="text-soft">Take it now, or save it for later — you'll find it under "Quizzes" whenever you're ready.</p>
+    <div class="confirm-actions" id="readyActions">
+      <a href="#" id="takeNowButton" class="btn">Take it now</a>
+      <a href="{% url 'quiz:home' %}" class="btn btn-ghost">Save for later</a>
+    </div>
+  </div>
 
 </div>
 {% endblock %}
@@ -92,7 +105,10 @@
 
         if (data.status === "READY") {
           clearInterval(phraseInterval);
-          window.location.href = data.redirect_url;
+          document.getElementById("processingCard").hidden = true;
+          const takeNow = document.getElementById("takeNowButton");
+          takeNow.href = data.redirect_url;
+          document.getElementById("processingReady").hidden = false;
         } else if (data.status === "FAILED_BLOCKED") {
           showError(data.error_message, 'reviseButton');
         } else if (data.status === "FAILED_API_ERROR") {

@@ -28,8 +28,7 @@
     <form method="post">
       {% csrf_token %}
       <div class="confirm-actions">
-        {# Once quiz:quizhistory_list exists, swap the href below for {% url 'quiz:quizhistory_list' %} #}
-        <a href="#" class="btn btn-ghost">Cancel</a>
+        <a href="{% url 'quiz:quizzes' %}?tab=history" class="btn btn-ghost">Cancel</a>
         <button type="submit" class="btn btn-danger">Delete attempt</button>
       </div>
     </form>

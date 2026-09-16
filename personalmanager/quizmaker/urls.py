@@ -26,10 +26,11 @@ urlpatterns = [
     path("flashcards/topic/<str:topic>/", views.flashcard_topic_detail_view, name="flashcard_topic"),
     path("flashcards/topic/<str:topic>/delete/", views.flashcard_topic_delete_view, name="flashcard_topic_delete"),
     path("flashcards/topic/<str:topic>/study", views.flashcard_study_view, name="flashcard_study"),
+    path("flashcard/<int:pk>/review/", views.flashcard_review_submit_view, name="flashcard_review_submit"),
 
-    path("quizhistory/list/", views.QuizHistoryList.as_view(), name="quiz_history_list"),
     path("quizhistorylist/delete/<pk>/", views.QuizHistoryDelete.as_view(), name="quiz_history_delete"),
     path("quiz/<int:pk>/create-flashcards", views.create_flashcards_from_quiz, name="create_flashcards_from_quiz"),
+    path("quizzes/", views.quizzes_view, name="quizzes"),
 
     # Login
 

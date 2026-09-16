@@ -7,6 +7,7 @@ from .generation import (
     QuizAggregateMetrics, QuizGenerationLog, SourceText, QuizNodeCost,
     QuizTrace
 )
+from .engagement import UserActivity
 from .feedback import QuizReview, QuizFlag
 
 __all__ = [
@@ -16,5 +17,6 @@ __all__ = [
     "FlashCard",
     "PilotAccessCode",
     "QuizAggregateMetrics", "QuizGenerationLog", "SourceText", "QuizNodeCost",
-    "QuizReview", "QuizFlag", "QuizTrace"
+    "QuizReview", "QuizFlag", "QuizTrace",
+    "UserActivity"
 ]

@@ -3,7 +3,7 @@
    ========================================================================== */
 
 .profile-shell {
-  max-width: 560px;
+  max-width: 1040px;
   margin-inline: auto;
 }
 
@@ -12,6 +12,20 @@
   align-items: center;
   gap: 18px;
   margin-bottom: 28px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.profile-main,
+.profile-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .profile-avatar {
@@ -56,6 +70,126 @@
   color: var(--color-ink);
 }
 
+/* Streak card */
+.streak-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 28px;
+  margin-bottom: 20px;
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.streak-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: var(--color-bg-card-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.streak-info { flex: 1; }
+
+.streak-count {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-1);
+  color: var(--color-primary-dark);
+}
+
+.streak-label {
+  font-size: var(--step--1);
+  color: var(--color-ink-soft);
+}
+
+.streak-countdown {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-primary-dark);
+  white-space: nowrap;
+}
+
+/* Quick stats row - now sidebar-scoped, stacks single-column at 320px width */
+.profile-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.profile-stat-card {
+  padding: 20px;
+  text-align: center;
+}
+
+.profile-stat-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-2);
+  color: var(--color-ink);
+}
+
+.profile-stat-label {
+  font-size: var(--step--1);
+  color: var(--color-ink-faint);
+  margin-top: 4px;
+}
+
+/* Topic strengths/weaknesses */
+.profile-topics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.topic-list-card { padding: 20px 22px; }
+
+.topic-list-card h3 {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-faint);
+  margin-bottom: 12px;
+}
+
+.topic-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 8px;
+  font-size: var(--step--1);
+}
+
+.topic-row:not(:last-child) { border-bottom: 1px solid var(--color-border); }
+
+.topic-accuracy { font-weight: 700; }
+.topic-accuracy.is-strong { color: var(--color-primary-dark); }
+.topic-accuracy.is-weak { color: var(--color-error); }
+
+/* Nav hub - single column in the narrow sidebar, not side-by-side */
+.profile-nav-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-hub-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  font-weight: 700;
+  color: var(--color-ink);
+  transition: border-color 0.15s var(--ease);
+}
+
+.profile-hub-card:hover { border-color: var(--color-primary); }
+
+/* Coming soon placeholders */
 .profile-coming-soon {
   text-align: center;
   padding: 40px 24px;
@@ -72,3 +206,38 @@
 
 .profile-coming-soon h3 { margin-bottom: 6px; font-size: var(--step-0); }
 .profile-coming-soon p { font-size: var(--step--1); color: var(--color-ink-soft); }
+
+.profile-coming-soon + .profile-coming-soon { margin-top: 0; }
+
+.profile-sidebar .profile-topics-row {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-sidebar {
+    order: -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-topics-row {
+    grid-template-columns: 1fr;
+  }
+
+  .streak-card {
+    flex-wrap: wrap;
+  }
+
+  .streak-countdown {
+    width: 100%;
+    margin-top: 8px;
+  }
+}

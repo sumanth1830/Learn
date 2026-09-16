@@ -16,6 +16,9 @@ class FlashCard(TimeStampedModel):
         related_name="flashcards"
     )
 
+    last_reviewed_at = models.DateTimeField(null=True, blank=True)
+    correct_streak = models.IntegerField(default=0)
+
     def __str__(self):
         return f"{self.front_text[:30]}"
 

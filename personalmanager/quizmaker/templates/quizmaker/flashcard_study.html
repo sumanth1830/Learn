@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="container study-shell">
 
   <div id="studyHeader" class="study-header">
@@ -18,12 +19,19 @@
         <span class="eyebrow">Studying</span>
         <h1 class="study-title">{{ topic }}</h1>
       </div>
-      <button type="button" class="btn btn-ghost btn-sm" id="shuffleBtn">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M4 4l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Shuffle
-      </button>
+      <div class="study-header-actions">
+        <a href="{% url 'quiz:flashcard_topic' topic=topic %}" class="btn btn-ghost btn-sm" aria-label="Exit study session">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <button type="button" class="btn btn-ghost btn-sm" id="shuffleBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M4 4l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Shuffle
+        </button>
+      </div>
     </div>
 
     <div class="study-progress-row">
@@ -36,7 +44,7 @@
 
   <div class="study-card-stage" id="studyStage">
     {% for card in cards %}
-    <div class="study-card {% if forloop.first %}is-active{% endif %}" data-index="{{ forloop.counter0 }}">
+    <div class="study-card {% if forloop.first %}is-active{% endif %}" data-index="{{ forloop.counter0 }}" data-card-id="{{ card.pk }}">
       <div class="study-flip-inner">
         <div class="study-face study-face-front">
           <div class="study-front-text">{{ card.front_text|linebreaksbr }}</div>
@@ -143,6 +151,11 @@
       showNext();
     }
 
+    function getCsrfToken() {
+      return document.querySelector('[name=csrfmiddlewaretoken]')?.value
+        || document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+    }
+
     cards.forEach((card) => {
       const inner = card.querySelector('.study-flip-inner');
       inner.addEventListener('click', () => inner.classList.toggle('is-flipped'));
@@ -150,7 +163,21 @@
       card.querySelectorAll('.study-rate-btn').forEach((btn) => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (btn.dataset.rate === 'mastered') {
+          const rating = btn.dataset.rate;
+          const cardId = card.dataset.cardId;
+
+          fetch(`/flashcard/${cardId}/review/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': getCsrfToken(),
+            },
+            body: `rating=${rating}`,
+          }).catch(() => {
+            // Non-critical - don't block the study flow if this fails
+          });
+
+          if (rating === 'mastered') {
             mastered += 1;
             updateProgress();
           } else {

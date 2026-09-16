@@ -11,10 +11,11 @@ from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic.edit import CreateView
 
 from ..forms import QuizCreationForm
-from ..models import Quiz, QuizAttemptAnswer, QuizFlag, QuizHistory, QuizReview
+from ..models import Quiz, QuizAttemptAnswer, QuizFlag, QuizHistory, QuizReview, UserActivity
 from ..tasks import generate_quiz_task, resume_quiz_task, retry_quiz_task
 
 MAX_PDF_PAGES = 15
@@ -177,6 +178,11 @@ def quiz_take_view(request, pk):
         history.num_correct = num_correct
         history.num_wrong = total - num_correct
         history.save(update_fields=["num_correct", "num_wrong"])
+
+        # For user activity tracking - updates when user takes a quiz
+        UserActivity.objects.get_or_create(
+            user=request.user, activity_date=timezone.now().date()
+        )
 
         # for the quiz rating/review handling
         url = reverse("quiz:quiz_results", args=[history.pk])
