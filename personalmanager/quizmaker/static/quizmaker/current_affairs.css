@@ -22,15 +22,24 @@
   color: var(--color-ink);
 }
 
+/* Widen both pages beyond the shared .container default, scoped here only.
+   Add class="container ca-digest-page" / "container ca-articles-page" on
+   the wrapping div in each template. */
+.ca-digest-page,
+.ca-articles-page {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
 .ca-digest-card {
-  padding: 24px 28px;
+  max-width: 100%;
+  padding: 28px 32px;
   margin-bottom: 28px;
   background: var(--color-primary-soft);
   border-color: var(--color-primary);
 }
 
 .ca-digest-card .eyebrow { color: var(--color-primary-dark); }
-.ca-digest-card p { margin: 10px 0 16px; color: var(--color-ink); }
 
 .ca-digest-placeholder {
   text-align: center;
@@ -86,6 +95,180 @@
   font-size: 11px;
   color: var(--color-ink-faint);
   white-space: nowrap;
+}
+
+/* Two-column digest layout: sticky ministry nav + reading column */
+.ca-digest-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 36px;
+  align-items: start;
+  margin: 18px 0 20px;
+}
+
+.ca-digest-toc {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  height: fit-content;
+  border-right: 1px solid var(--color-border);
+  padding-right: 20px;
+}
+
+.ca-digest-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ca-digest-toc a {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-ink-soft);
+  line-height: 1.4;
+  text-decoration: none;
+  transition: color 0.15s var(--ease);
+}
+
+.ca-digest-toc a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Reading column typography */
+.ca-digest-content h2 {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  color: var(--color-ink);
+}
+
+.ca-digest-content h2:first-child {
+  margin-top: 0;
+}
+
+.ca-digest-content p {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: var(--step-0);
+  line-height: 1.75;
+  color: var(--color-ink);
+  margin-bottom: 16px;
+}
+
+.ca-digest-content sup a {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ca-digest-content sup a:hover {
+  text-decoration: underline;
+}
+
+.ca-digest-top {
+  margin-bottom: 14px;
+}
+
+.ca-digest-actions-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Cross-page link between digest and articles views */
+.ca-articles-link {
+  display: inline-block;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin-top: 20px;
+  margin-bottom: 20px;
+  transition: opacity 0.15s var(--ease);
+}
+
+.ca-articles-link:hover {
+  opacity: 0.75;
+}
+
+.ca-digest-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 36px;
+  align-items: start;
+  margin: 18px 0 20px;
+  min-height: 100vh;
+}
+
+summary { cursor: pointer; list-style: none; }
+
+.ca-authority-group summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ca-authority-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.ca-authority-group h3 {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.ca-authority-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-ink-faint);
+  background: var(--color-bg-card-raised);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.ca-digest-content ul {
+  margin: 0 0 16px 0;
+  padding-left: 22px;
+}
+
+.ca-digest-content li {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: var(--step-0);
+  line-height: 1.65;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 800px) {
+  .ca-digest-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ca-digest-toc {
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-right: 0;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
 }
 
 @media (max-width: 560px) {

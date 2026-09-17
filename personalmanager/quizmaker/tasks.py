@@ -16,7 +16,7 @@ from agentic_app.schema import QuizDetails
 from django.utils import timezone
 from datetime import timedelta
 from quizmaker.pib_ingestion import poll_pib_feed
-
+from .digest_tasks import generate_daily_digest_task, retry_daily_digest_task
 
 
 GUARDRAIL_USER_MESSAGES = {

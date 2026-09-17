@@ -1,0 +1,57 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Current Affairs — All Articles — Marginal{% endblock %}
+{% block nav_current_affairs %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/current_affairs.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container ca-articles-page">
+
+  <div class="ca-header">
+    <span class="eyebrow">Current Affairs</span>
+    <h1>Source articles</h1>
+  </div>
+
+  <div class="ca-date-nav">
+    <a href="?date={{ prev_date|date:'Y-m-d' }}" class="btn btn-ghost btn-sm">← Previous day</a>
+    <span class="ca-date-label">{{ selected_date|date:"F j, Y" }}</span>
+    <a href="?date={{ next_date|date:'Y-m-d' }}" class="btn btn-ghost btn-sm">Next day →</a>
+  </div>
+
+  <a href="{% url 'quiz:current_affairs' %}?date={{ selected_date|date:'Y-m-d' }}" class="ca-articles-link">
+    ← Back to this day's digest
+  </a>
+
+  {% if grouped_articles %}
+    {% for authority, articles in grouped_articles.items %}
+      <details class="ca-authority-group">
+        <summary>
+          <h3>
+            {{ authority }}
+            <span class="ca-authority-count">{{ articles|length }}</span>
+          </h3>
+        </summary>
+        <div class="ca-article-list">
+          {% for article in articles %}
+          <a href="{{ article.source_url }}" target="_blank" rel="noopener" class="ca-article-row">
+            <span class="ca-article-title">{{ article.title }}</span>
+            <span class="ca-article-time">{{ article.published_at|date:"g:i A" }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </details>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <h3>No articles for this day</h3>
+      <p>Nothing was published or ingested for {{ selected_date|date:"F j, Y" }}.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

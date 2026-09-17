@@ -492,3 +492,116 @@ grade_12_below_creator_prompt = ChatPromptTemplate.from_template(
     </source_document>
     """
 )
+
+
+
+# Digest Generation Node Prompts
+filter_digest_prompt = ChatPromptTemplate.from_template(
+    """
+    You are reviewing today's press releases from the Press Information
+    Bureau (PIB), the official government news agency of India, before
+    they become source material for a current-affairs summary and quiz
+    for UPSC and State Group Services exam aspirants.
+    
+    Your only job is appropriateness - NOT topical relevance. Every
+    article listed here is legitimate government content and is fair
+    by default. Your task is narrowly to flag any article whose
+    subject matter is genuinely distressing and unsuitable for UPSC 
+    and State Group Services exam aspirants summary or quiz material 
+    - specifically violence, death, sexual assault, or abuse - even 
+    when the source itself is a legitimate government communication 
+    (for example, a National Human Rights Commission statement about 
+    a crime).
+    
+    When in doubt, do NOT exclude. Only flag genuinely serious cases.
+    Judge based on the title alone, since that is all you are given.
+    
+    For every single article listed below, you must return a decision -
+    whether excluded or not - along with a brief reason explaining your
+    call either way.
+    
+    Articles:
+    {numbered_article_titles}
+    """
+)
+
+
+relevance_filter_prompt = ChatPromptTemplate.from_template(
+    """
+    You are screening today's press releases from the Press Information
+    Bureau (PIB) before they are considered for a current-affairs
+    briefing for UPSC and State Group Services exam aspirants.
+
+    Your only job is relevance - NOT appropriateness (that has already
+    been checked separately). For each article, judge based on the
+    title alone whether it is genuinely likely to contain testable,
+    UPSC and state group exam-relevant material - concrete policy actions, 
+    schemes, data, government decisions, or significant events - 
+    as opposed to routine ceremonial coverage, social-media amplification, 
+    minor local events, or content with no real substantive government
+    action behind it.
+
+    When genuinely uncertain, mark it relevant and let the summary
+    writer make the final call with the full text - this is a coarse,
+    volume-reducing filter, not the final judgment.
+
+    For every article listed below, return a decision - relevant or
+    not - along with a brief reason for your call either way.
+
+    Articles:
+    {numbered_article_titles}
+    """
+)
+
+group_summary_prompt = ChatPromptTemplate.from_template(
+    """
+    You are writing one section of today's current-affairs briefing for
+    UPSC and State Group Services exam aspirants, covering press
+    releases from {ministry} only.
+
+    Preserve specific, testable details - exact figures, scheme names,
+    effective dates, and named entities. Cite every fact with (ID: X).
+    
+    Write the content as a bulleted list (using markdown "-" syntax), not
+    flowing paragraphs. Each bullet should cover one distinct fact or
+    event, stated concisely with its (ID: X) citation. Where a single
+    article contributes multiple important facts, use multiple bullets
+    rather than combining them into one dense sentence.
+
+    A social-media post where the Prime Minister shares or amplifies
+    someone else's opinion piece does not belong here unless it
+    accompanies a new, concrete government action, policy, or data
+    point. Routine ceremonies, internal pledge events, or personal
+    human-interest stories with no testable substance should be
+    skipped, with a brief reason why.
+
+    Some articles may describe the same underlying event at different
+    times. Synthesize complementary details into one treatment rather
+    than repeating them separately.
+
+    Do not include commentary about your own reasoning or uncertainty
+    within content - state facts directly, as the source reports them.
+
+    If this is a revision, address the feedback below directly.
+
+    Previous evaluation feedback:
+    {evaluation_feedback}
+
+    Articles:
+    {articles_text}
+    """
+)
+
+group_evaluation_prompt = ChatPromptTemplate.from_template(
+    """
+    Check this briefing section against its source articles. Only
+    check accuracy - is every claim genuinely grounded in the cited
+    article. Approve only if there are no ungrounded claims.
+
+    Section content:
+    {content}
+
+    Source articles (ID, title, and full text):
+    {articles_text}
+    """
+)

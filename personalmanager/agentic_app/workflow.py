@@ -10,7 +10,9 @@ from .agents.routing import (
     route_after_guardrail, route_after_structural_check,
     route_after_evaluator, route_after_safety_check,
 )
-from .schema import State
+from .agents.digest_nodes import filter_digest_agent, relevance_filter_agent, summarize_and_evaluate_agent
+
+from .schema import State, DigestState
 import mlflow
 import os
 from dotenv import load_dotenv
@@ -67,5 +69,20 @@ workflow.add_conditional_edges(
     "evaluator_agent", route_after_evaluator, ["corrector_agent", "creator_agent", END]
 )
 
+
+# Digest Workflow
+digest_workflow = StateGraph(DigestState)
+digest_workflow.add_node("filter_digest_agent", filter_digest_agent)
+digest_workflow.add_node("relevance_filter_agent", relevance_filter_agent)
+digest_workflow.add_node("summarize_and_evaluate_agent", summarize_and_evaluate_agent)
+
+digest_workflow.set_entry_point("filter_digest_agent")
+digest_workflow.add_edge("filter_digest_agent", "relevance_filter_agent")
+digest_workflow.add_edge("relevance_filter_agent", "summarize_and_evaluate_agent")
+digest_workflow.add_edge("summarize_and_evaluate_agent", END)
+
+digest_graph = digest_workflow.compile()
+
 # memory = InMemorySaver()
 graph = workflow.compile(checkpointer=checkpointer)
+digest_graph = digest_workflow.compile()

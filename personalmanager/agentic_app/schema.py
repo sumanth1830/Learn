@@ -104,3 +104,68 @@ class State(TypedDict):
     safety_category: str
     end_reason: Optional[str]
     correction_occurred: Annotated[int, operator.add]
+
+
+# Digest Schemas
+class ArticleDecision(BaseModel):
+    article_id: Annotated[int, Field(description="Id of the Article")]
+    exclude: Annotated[bool, Field(description="Is the article excluded?")]
+    reason: Annotated[str, Field(description="Reason for exclusion/inclusion of the article")]
+
+class DigestFilterResult(BaseModel):
+    decisions: List[ArticleDecision]
+
+class RelevanceDecision(BaseModel):
+    article_id: Annotated[int, Field(description="Id of the Article")]
+    relevant: Annotated[bool, Field(description="Is the article relevant for UPSC/State Group Services exam preparation?")]
+    reason: Annotated[str, Field(description="Reason for the relevance decision")]
+
+class DigestRelevanceResult(BaseModel):
+    decisions: List[RelevanceDecision]
+
+class MinistryGroupResult(BaseModel):
+    ministry: Annotated[str, Field(description="The ministry/theme name")]
+    status: Annotated[str, Field(description="APPROVED or REJECTED")]
+    attempts: Annotated[int, Field(description="How many attempts this group took")]
+    article_count: Annotated[int, Field(description="How many articles were in this group")]
+    prompt_tokens: Annotated[int, Field(description="Total prompt tokens used across all attempts")]
+    completion_tokens: Annotated[int, Field(description="Total completion tokens used across all attempts")]
+    cost: Annotated[float, Field(description="Total cost across all attempts for this group")]
+
+
+class FinalDigestSummary(BaseModel):
+    content: Annotated[str, Field(description="The full assembled digest, all approved sections joined")]
+    group_results: Annotated[List[MinistryGroupResult], Field(description="Per-ministry outcome and cost data")]
+    all_usage_entries: Annotated[List[dict], Field(description="Every individual LLM call's usage, tagged by node")]
+
+
+class SkippedArticle(BaseModel):
+    article_id: Annotated[int, Field(description="Id of the skipped article")]
+    reason: Annotated[str, Field(description="Brief reason it was skipped")]
+
+
+class GroupSummary(BaseModel):
+    content: Annotated[str, Field(description="Prose for this ministry's articles, with (ID: X) citations")]
+    articles_used: Annotated[List[int], Field(description="Article IDs used in this section")]
+    skipped: Annotated[List[SkippedArticle], Field(description="Articles skipped, with brief reasons")]
+
+
+class GroupAccuracyIssue(BaseModel):
+    article_id: Annotated[int, Field(description="Id of the article")]
+    note: Annotated[str, Field(description="What claim is not grounded")]
+
+
+class GroupEvaluation(BaseModel):
+    evaluation_status: Annotated[Literal["APPROVED", "REJECTED"], Field(description="Status of the evaluation")]
+    accuracy_issues: Annotated[List[GroupAccuracyIssue], Field(description="Ungrounded claims, if any")]
+
+
+class DigestState(TypedDict):
+    articles: list[dict]
+    excluded_article_ids: list[int]
+    filter_result: Optional[DigestFilterResult]
+    summary_result: Optional[FinalDigestSummary]
+    end_reason: str
+    relevance_result: Optional[DigestRelevanceResult]
+    relevance_usage: Optional[dict]
+    filter_usage: Optional[dict]

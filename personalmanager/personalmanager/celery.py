@@ -24,6 +24,10 @@ app.conf.beat_schedule = {
     # PIB Ingestion
     "poll-pib-feed": {
         "task": "quizmaker.tasks.poll_pib_feed_task",
-        "schedule": crontab(minute=0, hour="*/6"),
+        "schedule": crontab(minute="*/30"),
+    },
+    "generate-daily-digest": {
+        "task": "quizmaker.digest_tasks.generate_daily_digest_task",
+        "schedule": crontab(hour=18, minute=0),
     },
 }

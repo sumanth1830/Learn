@@ -33,7 +33,8 @@ urlpatterns = [
     path("quizzes/", views.quizzes_view, name="quizzes"),
 
     # News Ingestion
-    path("current-affairs/", views.current_affairs_view, name="current_affairs"),
+    path("current-affairs/", views.current_affairs_digest_view, name="current_affairs"),
+    path("current-affairs/articles/", views.current_affairs_articles_view, name="current_affairs_articles"),
 
     # Login
 

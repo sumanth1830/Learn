@@ -41,3 +41,24 @@ corrector_llm = ChatOpenAI(
     model="deepseek/deepseek-v4-pro", temperature=0, timeout=120,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
 )
+
+# Digest Summary Workflow LLM's
+filter_digest_llm = ChatOpenAI(
+    model="openai/gpt-5.4-nano", temperature=0.0, max_tokens=3000, timeout=120,
+    api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
+)
+
+group_summary_llm = ChatOpenAI(
+    model="google/gemini-2.5-flash-lite", temperature=0.2, timeout=120,
+    api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
+)
+
+group_evaluator_llm = ChatOpenAI(
+    model="google/gemini-3.7-flash", temperature=0, timeout=120,
+    api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
+)
+
+relevance_filter_llm = ChatOpenAI(
+    model="openai/gpt-5.4-nano", temperature=0.0, max_tokens=3000, timeout=120,
+    api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
+)

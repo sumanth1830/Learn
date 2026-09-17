@@ -90,7 +90,14 @@ def extract_title_and_authority(page_text):
     # Skip the generic page-title line ("Press Release:Press Information Bureau")
     content_lines = [l for l in lines if l != "Press Release:Press Information Bureau"]
     issuing_authority = content_lines[0] if content_lines else ""
-    title = content_lines[1] if len(content_lines) > 1 else ""
+    # title = content_lines[1] if len(content_lines) > 1 else ""
+    title = ""
+    for line in content_lines[1:]:
+        if line.startswith("Posted On:") or line.startswith("प्रविष्टि तिथि:"):
+            break
+        title += line + " "
+    title = title.strip()
+
     return issuing_authority, title
 
 
