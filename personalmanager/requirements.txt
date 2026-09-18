@@ -113,6 +113,7 @@ latex2mathml==3.81.0
 lxml==6.1.2
 mail-parser==4.6.4
 Mako==1.4.1
+Markdown==3.10.3
 markdown-it-py==4.2.0
 marko==2.2.4
 MarkupSafe==3.0.3
