@@ -169,3 +169,4 @@ class DigestState(TypedDict):
     relevance_result: Optional[DigestRelevanceResult]
     relevance_usage: Optional[dict]
     filter_usage: Optional[dict]
+    run_log: Optional[dict]

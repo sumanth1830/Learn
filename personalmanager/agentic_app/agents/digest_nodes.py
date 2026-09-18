@@ -153,8 +153,22 @@ def summarize_and_evaluate_agent(state: DigestState) -> dict:
     group_results = []
     all_usage_entries = []
     approved_sections = []
+    run_log = {"approved": [], "rejected": [], "crashed": [], "crashed_reasons": {}}
     for ministry, group_articles in groups.items():
-        result = process_ministry_group(ministry, group_articles)
+        try:
+            result = process_ministry_group(ministry, group_articles)
+        except Exception as e:
+            error_message = str(e)
+            run_log["crashed"].append(ministry)
+            run_log["crashed_reasons"][ministry] = error_message
+            print(f"[digest] group '{ministry}' failed with an exception: {e}")
+            result = {
+                "status": "FAILED",
+                "attempts": 0,
+                "section": None,
+                "usage_log": [],
+            }
+
         usage_totals = {
             "prompt_tokens": sum(u["prompt_tokens"] for u in result["usage_log"]),
             "completion_tokens": sum(u["completion_tokens"] for u in result["usage_log"]),
@@ -170,6 +184,9 @@ def summarize_and_evaluate_agent(state: DigestState) -> dict:
         all_usage_entries.extend(result["usage_log"])
         if result["status"] == "APPROVED":
             approved_sections.append((ministry, result["section"].content))
+            run_log["approved"].append(ministry)
+        elif result["status"] != "FAILED":
+            run_log["rejected"].append(ministry)
 
     content = "\n\n".join(f"## {m}\n\n{c}" for m, c in approved_sections)
     end_reason = "approved" if approved_sections else "no_groups_approved"
@@ -181,4 +198,5 @@ def summarize_and_evaluate_agent(state: DigestState) -> dict:
             all_usage_entries=all_usage_entries,
         ),
         "end_reason": end_reason,
+        "run_log": run_log,
     }

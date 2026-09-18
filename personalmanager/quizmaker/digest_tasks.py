@@ -84,6 +84,7 @@ def _run_digest_generation(digest_date):
         groups_approved=len([g for g in group_results if g.status == "APPROVED"]),
         groups_exhausted=len([g for g in group_results if g.status != "APPROVED"]),
         total_time_seconds=elapsed_seconds,
+        run_log=final_state.get("run_log", {}),
     )
 
     print(f"[digest {digest_date}] approved and saved, cost=${total_cost:.4f}, time={elapsed_seconds:.1f}s")

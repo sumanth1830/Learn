@@ -45,3 +45,4 @@ class DigestAggregateMetrics(models.Model):
     groups_approved = models.IntegerField(default=0)
     groups_exhausted = models.IntegerField(default=0)
     total_time_seconds = models.FloatField()
+    run_log = models.JSONField(default=dict, blank=True)
