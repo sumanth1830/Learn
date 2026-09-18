@@ -13,7 +13,7 @@ from .flashcards import (
     flashcard_study_view, create_flashcards_from_quiz, flashcard_review_submit_view
 )
 from .history import QuizHistoryDelete, quizzes_view
-from .current_affairs import current_affairs_digest_view, current_affairs_articles_view
+from .current_affairs import current_affairs_digest_view, current_affairs_articles_view, generate_digest_quiz_view
 
 
 __all__ = [
@@ -25,5 +25,5 @@ __all__ = [
     "flashcard_topic_detail_view", "flashcard_topic_delete_view", "flashcard_review_submit_view",
     "flashcard_study_view", "create_flashcards_from_quiz",
     "QuizHistoryDelete", "quizzes_view",
-    "current_affairs_digest_view", "current_affairs_articles_view"
+    "current_affairs_digest_view", "current_affairs_articles_view", "generate_digest_quiz_view"
 ]

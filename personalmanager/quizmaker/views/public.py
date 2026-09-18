@@ -18,6 +18,7 @@ from pypdf import PdfReader, PdfWriter
 from ..forms import SignupForm
 from ..models import (
     FlashCard, Quiz, QuizAggregateMetrics, QuizFlag, QuizNodeCost, QuizReview,
+    NewsArticle, DigestNodeCost, DigestAggregateMetrics
 )
 
 AGENT_DISPLAY = {
@@ -26,6 +27,13 @@ AGENT_DISPLAY = {
     "safety_agent": {"label": "Safety", "icon": "ti-scan-eye", "role": "accent", "desc": "Checks phrasing and tone"},
     "evaluator_agent": {"label": "Evaluator", "icon": "ti-search", "role": "accent", "desc": "Checks accuracy"},
     "corrector_agent": {"label": "Corrector", "icon": "ti-tool", "role": "warning", "desc": "Fixes flagged issues"},
+}
+
+NODE_DISPLAY_NAMES = {
+    "filter": "Filter",
+    "relevance_filter": "Relevance Filter",
+    "summary": "Summarize",
+    "evaluator": "Evaluate",
 }
 
 
@@ -225,6 +233,35 @@ def dashboard_view(request):
             "avg_output": format_tokens(row["avg_output"]) if row else "0",
         })
 
+    # Per-node digest pipeline stats
+    # Article funnel
+    total_ingested = NewsArticle.objects.filter(digest_included__isnull=False).count()
+    total_included = NewsArticle.objects.filter(digest_included=True).count()
+    total_excluded = NewsArticle.objects.filter(digest_included=False).count()
+
+    digest_node_stats = []
+    for node_name in ["filter", "relevance_filter", "summary", "evaluator"]:
+        stats = DigestNodeCost.objects.filter(node_name=node_name).aggregate(
+            avg_cost=Avg("cost"),
+            avg_prompt_tokens=Avg("prompt_tokens"),
+            avg_completion_tokens=Avg("completion_tokens"),
+        )
+        digest_node_stats.append({
+            "display_name": NODE_DISPLAY_NAMES[node_name],
+            "avg_cost": round(stats["avg_cost"] or 0, 4),
+            "avg_prompt_tokens": round(stats["avg_prompt_tokens"] or 0),
+            "avg_completion_tokens": round(stats["avg_completion_tokens"] or 0),
+        })
+
+    # Digest-level aggregate stats
+    digest_summary = DigestAggregateMetrics.objects.aggregate(
+        total_digests=Count("id"),
+        avg_total_cost=Avg("total_cost"),
+        avg_groups_approved=Avg("groups_approved"),
+        avg_groups_exhausted=Avg("groups_exhausted"),
+        avg_time=Avg("total_time_seconds"),
+    )
+
     # --- 6. Quality signals ---------------------------------------------
     review_qs = QuizReview.objects.all()
     review_count = review_qs.count()
@@ -311,6 +348,11 @@ def dashboard_view(request):
 
         "pipeline_stages": pipeline_stages,
         "total_attempts": total_attempts,
+        "digest_summary": digest_summary,
+        "total_ingested": total_ingested,
+        "total_included": total_included,
+        "total_excluded": total_excluded,
+        "digest_node_stats": digest_node_stats,
 
         "review_count": review_count,
         "avg_rating": round(avg_rating, 1),

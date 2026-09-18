@@ -558,3 +558,92 @@ textarea:focus-visible,
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+
+/* Study dropdown, matching .site-nav's existing look and feel */
+
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--color-ink-soft);
+  transition: color 0.15s var(--ease);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-dropdown summary:hover,
+.nav-dropdown summary:focus-visible {
+  color: var(--color-primary-dark);
+}
+
+.nav-dropdown summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  margin-top: -2px;
+  transition: transform 0.15s var(--ease);
+}
+
+.nav-dropdown[open] summary::after {
+  transform: rotate(-135deg);
+  margin-top: 2px;
+}
+
+/* Highlight "Study" itself when any of its children is the active page */
+.nav-dropdown:has(a.is-active) summary {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  padding: 8px;
+  background: var(--color-bg-card-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 50;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--color-ink-soft);
+  font-size: var(--step--1);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a:focus-visible {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.nav-dropdown-menu a.is-active {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* Close the dropdown when clicking anywhere outside it - a tiny bit of
+   JS is unavoidable for this specific behavior since <details> alone
+   doesn't support click-outside-to-close. */

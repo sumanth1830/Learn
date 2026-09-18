@@ -1,4 +1,6 @@
 from collections import defaultdict
+
+from quizmaker.models import NewsArticle
 from ..schema import (
     DigestState,
     DigestFilterResult, DigestRelevanceResult,
@@ -114,7 +116,32 @@ def process_ministry_group(ministry, articles, max_retries=2):
     }
 
 
+def write_back_article_decisions(state):
+    filter_decisions = {d.article_id: d for d in state["filter_result"].decisions}
+    relevance_decisions = {d.article_id: d for d in state["relevance_result"].decisions}
+    excluded_ids = set(state.get("excluded_article_ids", []))
+
+    for article in state["articles"]:
+        article_id = article["id"]
+        included = article_id not in excluded_ids
+
+        reason = ""
+        if not included:
+            filter_decision = filter_decisions.get(article_id)
+            relevance_decision = relevance_decisions.get(article_id)
+            if filter_decision and filter_decision.exclude:
+                reason = filter_decision.reason
+            elif relevance_decision and not relevance_decision.relevant:
+                reason = relevance_decision.reason
+
+        NewsArticle.objects.filter(id=article_id).update(
+            digest_included=included,
+            filter_reason=reason,
+        )
+
+
 def summarize_and_evaluate_agent(state: DigestState) -> dict:
+    write_back_article_decisions(state)
     articles = state["articles"]
     excluded_ids = set(state.get("excluded_article_ids", []))
     survivors = [a for a in articles if a["id"] not in excluded_ids]

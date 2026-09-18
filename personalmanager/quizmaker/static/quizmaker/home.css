@@ -2,12 +2,46 @@
    Home page
    ========================================================================== */
 
+/* Widen the page beyond the shared .container default, scoped here only.
+   .hero-copy keeps its own narrower 560px width deliberately - only the
+   overall page/section width increases. */
+.home-page {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
 .hero {
   display: grid;
   grid-template-columns: 1fr;
   gap: 36px;
   text-align: center;
   padding-block: 4px 48px;
+}
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr 420px;
+    gap: 56px;
+    text-align: left;
+    align-items: center;
+  }
+
+  .hero-copy {
+    margin-inline: 0;
+  }
+
+  .hero-copy p {
+    margin-inline: 0;
+  }
+
+  .hero-actions {
+    justify-content: flex-start;
+  }
+
+  .hero-visual {
+    margin-inline: 0;
+    max-width: 100%;
+  }
 }
 
 .hero-tagline {
@@ -252,6 +286,70 @@
   line-height: 1.6;
 }
 
+/* Daily Digest feature - mirrors the hero's copy + visual layout */
+.digest-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 48px;
+  align-items: center;
+  padding-block: 56px;
+  border-top: 1px solid var(--color-border);
+}
+
+.digest-feature-copy {
+  text-align: left;
+}
+
+.digest-feature-copy .eyebrow {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.digest-feature-copy h2 {
+  margin-bottom: 14px;
+}
+
+.digest-feature-copy p {
+  color: var(--color-ink-soft);
+  max-width: 480px;
+  margin-bottom: 12px;
+}
+
+.digest-feature-copy .link-quiet {
+  display: inline-block;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.mock-digest {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mock-digest-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-faint);
+  margin-top: 10px;
+}
+
+.mock-digest-eyebrow:first-child {
+  margin-top: 0;
+}
+
+.mock-digest .mock-line {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border);
+}
+
+.mock-digest .mock-line.short {
+  width: 70%;
+}
+
 /* CTA band */
 .cta-band {
   text-align: center;
@@ -305,6 +403,7 @@
   .steps { grid-template-columns: 1fr; }
   .mock-card { width: 270px; }
   .hero-visual-stack { height: 320px; }
+  .digest-feature { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 520px) {

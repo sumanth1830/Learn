@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.storage import default_storage
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -144,7 +144,11 @@ def quiz_resume_view(request, pk):
 
 @login_required
 def quiz_take_view(request, pk):
-    quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
+    quiz = get_object_or_404(Quiz, pk=pk)
+
+    is_digest_quiz = hasattr(quiz, "source_digest")
+    if not is_digest_quiz and quiz.creator != request.user:
+        raise Http404("No Quiz matches the given query.")
 
     if request.method == "POST":
         total = quiz.questions.count()

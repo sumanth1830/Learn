@@ -46,80 +46,124 @@
     </div>
   </div>
 
-  <!-- 2. Pipeline, simple grid with per-stage stats -->
+  <!-- 2. Pipeline - static architecture diagram + workflow-grouped live stats -->
   <div class="card dash-section">
     <span class="eyebrow">The pipeline</span>
-    <h2>Every quiz travels through the same checkpoints</h2>
+    <h2>Two paths in, one set of checkpoints</h2>
 
-    <div class="dash-flow-grid">
-
-      <div class="dash-flow-card">
-        <i class="ti ti-file-text" aria-hidden="true"></i>
-        <div class="dash-flow-label">PDF</div>
-        <div class="dash-flow-desc">PDF uploaded</div>
-      </div>
-
-      {% with stage=pipeline_stages.0 %}
-      <div class="dash-flow-card is-{{ stage.role }}">
-        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
-        <div class="dash-flow-label">{{ stage.label }}</div>
-        <div class="dash-flow-desc">{{ stage.desc }}</div>
-        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
-      </div>
-      {% endwith %}
-
-      {% with stage=pipeline_stages.1 %}
-      <div class="dash-flow-card is-{{ stage.role }}">
-        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
-        <div class="dash-flow-label">{{ stage.label }}</div>
-        <div class="dash-flow-desc">{{ stage.desc }}</div>
-        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
-      </div>
-      {% endwith %}
-
-      <div class="dash-flow-card">
-        <i class="ti ti-list-check" aria-hidden="true"></i>
-        <div class="dash-flow-label">Structural</div>
-        <div class="dash-flow-desc">Verifies format</div>
-        <div class="dash-flow-stats is-muted">no LLM call</div>
-      </div>
-
-      {% with stage=pipeline_stages.2 %}
-      <div class="dash-flow-card is-{{ stage.role }}">
-        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
-        <div class="dash-flow-label">{{ stage.label }}</div>
-        <div class="dash-flow-desc">{{ stage.desc }}</div>
-        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
-      </div>
-      {% endwith %}
-
-      {% with stage=pipeline_stages.3 %}
-      <div class="dash-flow-card is-{{ stage.role }}">
-        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
-        <div class="dash-flow-label">{{ stage.label }}</div>
-        <div class="dash-flow-desc">{{ stage.desc }}</div>
-        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
-      </div>
-      {% endwith %}
-
-      {% with stage=pipeline_stages.4 %}
-      <div class="dash-flow-card is-{{ stage.role }} is-conditional">
-        <span class="dash-flow-badge">if needed</span>
-        <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
-        <div class="dash-flow-label">{{ stage.label }}</div>
-        <div class="dash-flow-desc">{{ stage.desc }}</div>
-        <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
-      </div>
-      {% endwith %}
-
-      <div class="dash-flow-card is-success">
-        <i class="ti ti-checklist" aria-hidden="true"></i>
-        <div class="dash-flow-label">Quiz</div>
-        <div class="dash-flow-desc">Quiz presented</div>
-        <div class="dash-flow-stats">ready</div>
-      </div>
-
+    <div class="dash-flow-diagram-wrap">
+      <img src="{% static 'quizmaker/pipeline_architecture.svg' %}" alt="Marginal pipeline architecture" class="dash-flow-diagram">
     </div>
+
+    <div class="dash-pipeline-group">
+      <h3 class="dash-pipeline-group-title">Quiz generation pipeline</h3>
+      <div class="dash-flow-grid dash-flow-grid-compact">
+
+        {% with stage=pipeline_stages.0 %}
+        <div class="dash-flow-card is-{{ stage.role }}">
+          <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+          <div class="dash-flow-label">{{ stage.label }}</div>
+          <div class="dash-flow-desc">{{ stage.desc }}</div>
+          <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+        </div>
+        {% endwith %}
+
+        {% with stage=pipeline_stages.1 %}
+        <div class="dash-flow-card is-{{ stage.role }}">
+          <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+          <div class="dash-flow-label">{{ stage.label }}</div>
+          <div class="dash-flow-desc">{{ stage.desc }}</div>
+          <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+        </div>
+        {% endwith %}
+
+        <div class="dash-flow-card">
+          <i class="ti ti-list-check" aria-hidden="true"></i>
+          <div class="dash-flow-label">Structural</div>
+          <div class="dash-flow-desc">Verifies format</div>
+          <div class="dash-flow-stats is-muted">no LLM call</div>
+        </div>
+
+        {% with stage=pipeline_stages.2 %}
+        <div class="dash-flow-card is-{{ stage.role }}">
+          <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+          <div class="dash-flow-label">{{ stage.label }}</div>
+          <div class="dash-flow-desc">{{ stage.desc }}</div>
+          <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+        </div>
+        {% endwith %}
+
+        {% with stage=pipeline_stages.3 %}
+        <div class="dash-flow-card is-{{ stage.role }}">
+          <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+          <div class="dash-flow-label">{{ stage.label }}</div>
+          <div class="dash-flow-desc">{{ stage.desc }}</div>
+          <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+        </div>
+        {% endwith %}
+
+        {% with stage=pipeline_stages.4 %}
+        <div class="dash-flow-card is-{{ stage.role }} is-conditional">
+          <span class="dash-flow-badge">if needed</span>
+          <i class="ti {{ stage.icon }}" aria-hidden="true"></i>
+          <div class="dash-flow-label">{{ stage.label }}</div>
+          <div class="dash-flow-desc">{{ stage.desc }}</div>
+          <div class="dash-flow-stats">${{ stage.avg_cost }} · {{ stage.avg_time }}s<br>{{ stage.avg_input }} in · {{ stage.avg_output }} out</div>
+        </div>
+        {% endwith %}
+
+      </div>
+    </div>
+
+    <div class="dash-pipeline-group">
+      <h3 class="dash-pipeline-group-title">Daily digest pipeline</h3>
+
+      <div class="dash-mini-stats">
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">{{ digest_summary.total_digests|default:0 }}</span>
+          <span class="dash-mini-label">digests generated</span>
+        </div>
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">${{ digest_summary.avg_total_cost|floatformat:4|default:"0.0000" }}</span>
+          <span class="dash-mini-label">avg. cost per digest</span>
+        </div>
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">{{ digest_summary.avg_groups_approved|floatformat:1|default:0 }}</span>
+          <span class="dash-mini-label">avg. ministries approved</span>
+        </div>
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">{{ digest_summary.avg_time|floatformat:0|default:0 }}s</span>
+          <span class="dash-mini-label">avg. generation time</span>
+        </div>
+      </div>
+
+      <div class="dash-flow-grid dash-flow-grid-compact">
+        {% for stat in digest_node_stats %}
+        <div class="dash-flow-card is-pro">
+          <div class="dash-flow-label">{{ stat.display_name }}</div>
+          <div class="dash-flow-stats">${{ stat.avg_cost }}<br>{{ stat.avg_prompt_tokens }} in · {{ stat.avg_completion_tokens }} out</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="dash-article-funnel">
+        <div class="dash-funnel-stat">
+          <span class="dash-stat-value">{{ total_ingested }}</span>
+          <span class="dash-stat-label">articles ingested</span>
+        </div>
+        <span class="dash-funnel-arrow">→</span>
+        <div class="dash-funnel-stat">
+          <span class="dash-stat-value">{{ total_included }}</span>
+          <span class="dash-stat-label">included in digests</span>
+        </div>
+        <span class="dash-funnel-arrow">→</span>
+        <div class="dash-funnel-stat">
+          <span class="dash-stat-value">{{ total_excluded }}</span>
+          <span class="dash-stat-label">filtered out</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- 3 & 4 side by side on wide screens -->
@@ -268,14 +312,23 @@
 
   <!-- 7. Footer strip -->
   <div class="dash-footer-strip">
-    <span>{{ total_registrations }} registered users</span>
-    <span>·</span>
-    <span>{{ total_flashcards }} flashcards created</span>
-    <span>·</span>
-    <span>{{ avg_questions }} avg. questions per quiz</span>
-    <span>·</span>
+    <div class="dash-stat-chip">
+      <span class="dash-stat-value">{{ total_registrations }}</span>
+      <span class="dash-stat-label">registered users</span>
+    </div>
+    <div class="dash-stat-chip">
+      <span class="dash-stat-value">{{ total_flashcards }}</span>
+      <span class="dash-stat-label">flashcards created</span>
+    </div>
+    <div class="dash-stat-chip">
+      <span class="dash-stat-value">{{ avg_questions }}</span>
+      <span class="dash-stat-label">avg. questions per quiz</span>
+    </div>
     {% for d in difficulty_counts %}
-    <span>{{ d.difficulty }}: {{ d.count }}</span>{% if not forloop.last %}<span>·</span>{% endif %}
+    <div class="dash-stat-chip">
+      <span class="dash-stat-value">{{ d.count }}</span>
+      <span class="dash-stat-label">{{ d.difficulty }}</span>
+    </div>
     {% endfor %}
   </div>
 

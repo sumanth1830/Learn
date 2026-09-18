@@ -9,21 +9,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container home-page">
 
   <section class="hero">
     <div class="hero-copy">
       <span class="eyebrow">Quizmaker &amp; tracker</span>
       <h1>Study from what you've already <span class="highlight">highlighted<svg viewBox="0 0 200 20" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M2 14.5C2 14.5 40 8 100 9C150 9.7 180 13 198 11.5" stroke="currentColor" stroke-width="11" stroke-linecap="round"/></svg></span></h1>
-      <p class="hero-tagline">A little sharper, every day.</p>
-      <p>Upload a PDF — lecture notes, a chapter, a slide deck — and Marginal turns it into a quiz at your level, then tracks exactly which parts still need work.</p>
-      <div class="contact-callout">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M4 5l8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>Have a feature request or found something broken? <a href="mailto:support@marginal.digital?subject=Marginal%20feedback">Let us know</a>.</span>
-      </div>
+      <p>Upload a PDF with real text content — lecture notes, a textbook
+      chapter, a document — and Marginal turns it into a quiz at your
+      level, then tracks exactly which parts still need work.</p>
+
       <div class="hero-actions">
         <a href="{% url 'quiz:quiz_create' %}" class="btn">
           Upload a PDF
@@ -107,6 +102,39 @@
         </div>
         <h3>Track your progress</h3>
         <p>See exactly which answers you missed, with the original passage right there — and watch your gaps close over time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="digest-feature">
+    <div class="digest-feature-copy">
+      <span class="eyebrow">New</span>
+      <h2>A daily briefing, straight from PIB</h2>
+      <p>
+        Every day, we pull the latest press releases from the Press
+        Information Bureau, sort them by ministry, and distill them
+        into a clean, exam-focused digest — no scrolling through dozens
+        of individual releases yourself.
+      </p>
+      <p>
+        Read it in minutes, then turn it into a quiz with one click.
+        The first person to generate it makes it available for
+        everyone else that day too.
+      </p>
+      <a href="{% url 'quiz:current_affairs_articles' %}" class="link-quiet">
+        See today's briefing →
+      </a>
+    </div>
+
+    <div class="digest-feature-visual" aria-hidden="true">
+      <div class="mock-card mock-digest">
+        <span class="mock-digest-eyebrow">Ministry of Rural Development</span>
+        <div class="mock-line"></div>
+        <div class="mock-line"></div>
+        <div class="mock-line short"></div>
+        <span class="mock-digest-eyebrow">Ministry of Finance</span>
+        <div class="mock-line"></div>
+        <div class="mock-line short"></div>
       </div>
     </div>
   </section>

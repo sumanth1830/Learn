@@ -32,26 +32,19 @@
         <span class="eyebrow">Today's Digest</span>
     </div>
     <div class="ca-digest-actions ca-digest-actions-top">
-      {% if digest.quiz %}
+      {% if user_history %}
+        <a href="{% url 'quiz:quiz_results' pk=user_history.pk %}" class="btn">Review your results</a>
+      {% elif digest.quiz %}
         <a href="{% url 'quiz:quiz_take' pk=digest.quiz.pk %}" class="btn">Take today's quiz</a>
       {% else %}
-        <button type="button" class="btn">Generate today's quiz</button>
+        <form method="post" action="{% url 'quiz:generate_digest_quiz' date=selected_date|date:'Y-m-d' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn">Generate today's quiz</button>
+        </form>
       {% endif %}
     </div>
-    <div class="ca-digest-layout">
-      <nav class="ca-digest-toc">
-        {{ digest.toc_html|safe }}
-      </nav>
-      <div class="ca-digest-content">
-        {{ digest.rendered_content|safe }}
-      </div>
-    </div>
-    <div class="ca-digest-actions">
-      {% if digest.quiz %}
-        <a href="{% url 'quiz:quiz_take' pk=digest.quiz.pk %}" class="btn">Take today's quiz</a>
-      {% else %}
-        <button type="button" class="btn">Generate today's quiz</button>
-      {% endif %}
+    <div class="ca-digest-content">
+      {{ digest.rendered_content|safe }}
     </div>
   </div>
   {% else %}

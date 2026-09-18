@@ -387,8 +387,7 @@ def generate_quiz_task(quiz_id, file_key):
             if local_path and os.path.exists(local_path):
                 os.remove(local_path)
 
-    # Only reached if the try block above completed with no exception -
-    # source_text is guaranteed to be defined here, not just assumed so.
+    # Only reached if the try block above completed with no exception
     _run_quiz_generation(quiz, source_text)
 
 @shared_task
@@ -501,3 +500,26 @@ def poll_pib_feed_task():
     count = poll_pib_feed()
     print(f"[PIB poll] saved {count} new articles")
     return count
+
+
+# For the Digest Quiz Generation on Click
+@shared_task
+def generate_quiz_from_text_task(quiz_id, source_text):
+    print("Generating Quiz from digest text....")
+    try:
+        quiz = Quiz.objects.get(pk=quiz_id)
+    except Quiz.DoesNotExist:
+        return
+
+    quiz.status = "PROCESSING"
+    quiz.save(update_fields=["status"])
+
+    try:
+        SourceText.objects.create(quiz=quiz, source_text=source_text)
+    except Exception as e:
+        quiz.status = "FAILED_API_ERROR"
+        quiz.error_message = f"Couldn't save the digest source text: {e}"
+        quiz.save(update_fields=["status", "error_message"])
+        return
+
+    _run_quiz_generation(quiz, source_text)

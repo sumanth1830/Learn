@@ -38,8 +38,10 @@ def profile_view(request):
         topic_accuracy.append({"topic": topic, "accuracy": accuracy, "total": row["total"]})
 
     topic_accuracy.sort(key=lambda t: t["accuracy"], reverse=True)
+    # Strong topic shown as weak topic fix
     top_topics = topic_accuracy[:3]
-    weak_topics = topic_accuracy[-3:][::-1] if len(topic_accuracy) > 3 else []
+    remaining = topic_accuracy[3:]
+    weak_topics = remaining[-3:][::-1] if remaining else []
 
     attempts = QuizHistory.objects.filter(user=user)
     total_correct = sum(a.num_correct for a in attempts)

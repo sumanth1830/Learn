@@ -35,6 +35,7 @@ urlpatterns = [
     # News Ingestion
     path("current-affairs/", views.current_affairs_digest_view, name="current_affairs"),
     path("current-affairs/articles/", views.current_affairs_articles_view, name="current_affairs_articles"),
+    path("current-affairs/<str:date>/generate-quiz/", views.generate_digest_quiz_view, name="generate_digest_quiz"),
 
     # Login
 
