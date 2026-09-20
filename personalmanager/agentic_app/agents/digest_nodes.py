@@ -7,7 +7,12 @@ from ..schema import (
     GroupSummary, GroupEvaluation, MinistryGroupResult, FinalDigestSummary
 )
 from ..prompts import filter_digest_prompt, relevance_filter_prompt, group_evaluation_prompt, group_summary_prompt
-from ..llms import filter_digest_llm, relevance_filter_llm, group_evaluator_llm, group_summary_llm
+from ..llms import (
+    get_filter_digest_llm,
+    get_group_summary_llm,
+    get_group_evaluator_llm,
+    get_relevance_filter_llm,
+)
 
 
 
@@ -26,7 +31,7 @@ def filter_digest_agent(state: DigestState) -> dict:
         f"[ID: {article['id']}] {article['title']}" for article in articles
     )
     prompt = filter_digest_prompt.invoke({"numbered_article_titles": numbered_article_titles})
-    filter_llm_with_structure = filter_digest_llm.with_structured_output(DigestFilterResult, include_raw=True)
+    filter_llm_with_structure = get_filter_digest_llm().with_structured_output(DigestFilterResult, include_raw=True)
 
     result = filter_llm_with_structure.invoke(prompt)
     filter_response = result["parsed"]
@@ -45,7 +50,7 @@ def relevance_filter_agent(state: DigestState) -> dict:
         f"[ID: {article['id']}] {article['title']}" for article in articles
     )
     prompt = relevance_filter_prompt.invoke({"numbered_article_titles": numbered_article_titles})
-    relevance_llm = relevance_filter_llm.with_structured_output(DigestRelevanceResult, include_raw=True)
+    relevance_llm = get_relevance_filter_llm().with_structured_output(DigestRelevanceResult, include_raw=True)
 
     result = relevance_llm.invoke(prompt)
     relevance_response = result["parsed"]
@@ -85,7 +90,7 @@ def process_ministry_group(ministry, articles, max_retries=2):
             "evaluation_feedback": evaluation_feedback,
             "articles_text": articles_text,
         })
-        summary_llm = group_summary_llm.with_structured_output(GroupSummary, include_raw=True)
+        summary_llm = get_group_summary_llm().with_structured_output(GroupSummary, include_raw=True)
         result = summary_llm.invoke(prompt)
         group_summary = result["parsed"]
         usage_log.append({"node": "summary", "attempt": attempt, **_extract_usage(result["raw"])})
@@ -94,7 +99,7 @@ def process_ministry_group(ministry, articles, max_retries=2):
             "content": group_summary.content,
             "articles_text": articles_text,
         })
-        eval_llm = group_evaluator_llm.with_structured_output(GroupEvaluation, include_raw=True)
+        eval_llm = get_group_evaluator_llm().with_structured_output(GroupEvaluation, include_raw=True)
         eval_result = eval_llm.invoke(eval_prompt)
         eval_response = eval_result["parsed"]
         usage_log.append({"node": "evaluator", "attempt": attempt, **_extract_usage(eval_result["raw"])})

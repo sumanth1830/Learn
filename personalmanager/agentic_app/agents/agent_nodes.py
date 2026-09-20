@@ -12,8 +12,12 @@ from ..prompts import (
     grade_12_below_example_item,
 )
 from ..llms import (
-    safety_llm, guardrail_llm, evaluator_llm,
-    creator_llm, corrector_llm, moderation_client,
+    get_guardrail_llm,
+    get_creator_llm,
+    get_evaluator_llm,
+    get_safety_llm,
+    get_corrector_llm,
+    get_moderation_client,
 )
 
 CREATOR_PROMPT_MAP = {
@@ -26,7 +30,7 @@ CREATOR_PROMPT_MAP = {
 
 def check_moderation(user_input: str) -> tuple[bool, str]:
     """Returns (flagged, comma-separated list of triggered categories)."""
-    result = moderation_client.moderations.create(
+    result = get_moderation_client().moderations.create(
         model="omni-moderation-latest",
         input=user_input,
     )
@@ -54,7 +58,7 @@ def guardrail_agent(state: State) -> dict:
             "guardrail_category": "profanity",
         }
 
-    guardrail = guardrail_llm.with_structured_output(GuardrailCheck)
+    guardrail = get_guardrail_llm().with_structured_output(GuardrailCheck)
     prompt = guardrail_prompt.invoke({
         "tips_for_quiz_creation": tips,
         "description": description,
@@ -94,7 +98,7 @@ def creator_agent(state: State) -> dict:
         retry_block = ""
 
     # creator = creator_llm.with_structured_output(Quiz)
-    creator = creator_llm.bind(max_tokens=token_budget).with_structured_output(Quiz)
+    creator = get_creator_llm().bind(max_tokens=token_budget).with_structured_output(Quiz)
     prompt = prompt_template.invoke({
         "quiz_topic": quiz_details.quiz_topic,
         "exam_name": quiz_details.exam_name,
@@ -121,7 +125,7 @@ def evaluator_agent(state: State) -> dict:
     source_text = state["source_text"]
     eval_attempts = state.get("evaluator_attempts", 0)
     # evaluator = llm.with_structured_output(QuizEvaluation)
-    evaluator = evaluator_llm.bind(max_tokens=token_budget).with_structured_output(QuizEvaluation)
+    evaluator = get_evaluator_llm().bind(max_tokens=token_budget).with_structured_output(QuizEvaluation)
     prompt = evaluator_prompt.invoke({
         "quiz_topic": quiz_details.quiz_topic,
         "exam_name": quiz_details.exam_name,
@@ -176,7 +180,7 @@ def correction_agent(state: State) -> dict:
         "all_question_topics": all_question_topics,
         "source_text": source_text,
     })
-    corrector = corrector_llm.bind(max_tokens=correction_token_budget).with_structured_output(CorrectionOutput)
+    corrector = get_corrector_llm().bind(max_tokens=correction_token_budget).with_structured_output(CorrectionOutput)
     corrector_response = corrector.invoke(prompt)
 
     for correction in corrector_response.corrections:
@@ -197,7 +201,7 @@ def safety_check_agent(state: State) -> dict:
         for i, item in enumerate(generated_quiz.quiz_items)
     )
 
-    safety_check_llm = safety_llm.with_structured_output(SafetyCheck)
+    safety_check_llm = get_safety_llm().with_structured_output(SafetyCheck)
     prompt = safety_check_prompt.invoke({
         "questionnaire": generated_quiz.model_dump_json(indent=2),
         "source_text": citations_only,

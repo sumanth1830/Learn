@@ -5,7 +5,7 @@ from django.utils import timezone
 from celery import shared_task
 
 from .models import NewsArticle, DailyDigest, DigestAggregateMetrics, DigestNodeCost
-from agentic_app.workflow import digest_graph
+from agentic_app.workflow import get_digest_graph
 
 from collections import defaultdict
 
@@ -30,7 +30,7 @@ def _run_digest_generation(digest_date):
     }
 
     start_time = time.time()
-    final_state = digest_graph.invoke(initial_state)
+    final_state = get_digest_graph().invoke(initial_state)
     elapsed_seconds = time.time() - start_time
     end_reason = final_state.get("end_reason", "")
 

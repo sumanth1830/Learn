@@ -1,4 +1,4 @@
-from ..llms import topics_preview_llm
+from ..llms import get_topics_preview_llm
 from ..prompts import topics_preview_prompt
 from ..schema import TopicsPreviewBriefResult
 from quizmaker.models import QuizAttemptAnswer
@@ -39,7 +39,7 @@ def topics_preview_agent(user):
             chunk_lookup[chunk.pk] = chunk.header
 
     prompt = topics_preview_prompt.invoke({"questions_with_context": questions_with_context})
-    llm_with_structure = topics_preview_llm.with_structured_output(TopicsPreviewBriefResult, include_raw=True)
+    llm_with_structure = get_topics_preview_llm().with_structured_output(TopicsPreviewBriefResult, include_raw=True)
     result = llm_with_structure.invoke(prompt)
 
     return result["parsed"], uncovered_answers,  _extract_usage(result["raw"]), chunk_lookup

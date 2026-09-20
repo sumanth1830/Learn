@@ -11,7 +11,7 @@ from .models import (
     QuizGenerationLog, QuizNodeCost, QuizTrace,
 )
 from celery.exceptions import SoftTimeLimitExceeded
-from agentic_app.workflow import graph
+from agentic_app.workflow import get_graph
 from agentic_app.schema import QuizDetails
 from django.utils import timezone
 from datetime import timedelta
@@ -338,7 +338,7 @@ def _run_quiz_generation(quiz, source_text):
         initial_state = {"quiz_details": quiz_details, "source_text": source_text}
         config = {"configurable": {"thread_id": attempt_id}}
 
-        final_state = graph.invoke(initial_state, config)
+        final_state = get_graph().invoke(initial_state, config)
 
     except SoftTimeLimitExceeded:
         crashed = True
@@ -476,7 +476,7 @@ def resume_quiz_task(quiz_id):
     config = {"configurable": {"thread_id": thread_id}}
 
     try:
-        state_snapshot = graph.get_state(config)
+        state_snapshot = get_graph().get_state(config)
     except Exception:
         state_snapshot = None
 
@@ -498,7 +498,7 @@ def resume_quiz_task(quiz_id):
     crash_type = None
 
     try:
-        final_state = graph.invoke(None, config)
+        final_state = get_graph().invoke(None, config)
     except SoftTimeLimitExceeded:
         crashed = True
         crash_type = "timeout"
