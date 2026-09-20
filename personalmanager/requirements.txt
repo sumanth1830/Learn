@@ -150,7 +150,6 @@ latex2mathml==3.81.0
 llama-index-core==0.14.24
 llama-index-instrumentation==0.6.0
 llama-index-workflows==2.24.0
-llama-parse==0.6.94
 llama_cloud==2.16.0
 lxml==6.1.2
 mail-parser==4.6.4
