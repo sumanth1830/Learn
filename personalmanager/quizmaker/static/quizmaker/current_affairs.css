@@ -22,6 +22,13 @@
   color: var(--color-ink);
 }
 
+.ca-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
 /* Widen both pages beyond the shared .container default, scoped here only.
    Add class="container ca-digest-page" / "container ca-articles-page" on
    the wrapping div in each template. */
@@ -125,7 +132,7 @@
 
 /* Digest reading column - single column, no nav/sidebar */
 .ca-digest-content {
-  max-width: 800px;
+  max-width: 100%;
   margin: 18px 0 20px;
 }
 

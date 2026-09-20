@@ -10,6 +10,7 @@ from .generation import (
 from .engagement import UserActivity
 from .feedback import QuizReview, QuizFlag
 from .news import NewsArticle, DailyDigest, DigestNodeCost, DigestAggregateMetrics
+from .rag import SourceChunk, TopicsPreviewBrief, TopicsPreviewCost
 
 __all__ = [
     "TimeStampedModel",
@@ -20,5 +21,6 @@ __all__ = [
     "QuizAggregateMetrics", "QuizGenerationLog", "SourceText", "QuizNodeCost",
     "QuizReview", "QuizFlag", "QuizTrace",
     "UserActivity",
-    "NewsArticle", "DailyDigest", "DigestNodeCost", "DigestAggregateMetrics"
+    "NewsArticle", "DailyDigest", "DigestNodeCost", "DigestAggregateMetrics",
+    "SourceChunk", "TopicsPreviewBrief", "TopicsPreviewCost"
 ]

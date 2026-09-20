@@ -16,7 +16,9 @@ from agentic_app.schema import QuizDetails
 from django.utils import timezone
 from datetime import timedelta
 from quizmaker.pib_ingestion import poll_pib_feed
+from quizmaker.rag_chunking import save_chunks_for_source_text
 from .digest_tasks import generate_daily_digest_task, retry_daily_digest_task
+from .topics_preview_tasks import generate_topics_preview_task
 
 
 GUARDRAIL_USER_MESSAGES = {
@@ -35,9 +37,40 @@ SAFETY_USER_MESSAGES = {
 
 def extract_text_from_pdf(pdf_path):
     """
-    Docling extraction - handles PDF extraction
+    Llama Parse First, in the event of failure
+    Docling gets executed
     """
-    # Moving imports to make sure they are only used during Celery Process
+    try:
+        return _extract_with_llamaparse(pdf_path)
+    except Exception as e:
+        print(f"[extract] LlamaParse failed, falling back to Docling: {e}")
+        return _extract_with_docling(pdf_path)
+
+
+def _extract_with_llamaparse(pdf_path):
+    from llama_cloud import LlamaCloud
+
+    print("Llama Parse Extraction.....")
+    api_key = os.getenv("LLAMA_CLOUD_API_KEY")
+    if not api_key:
+        raise RuntimeError("LLAMA_CLOUD_API_KEY not set")
+
+    base_url = os.getenv("LLAMA_CLOUD_BASE_URL")
+    client = LlamaCloud(api_key=api_key, base_url=base_url)
+
+    with open(pdf_path, "rb") as f:
+        result = client.parsing.parse(
+            upload_file=f,
+            tier="cost_effective",
+            version="latest",
+            expand=["markdown"],
+        )
+
+    pages = result.markdown.pages
+    return "\n\n".join(page.markdown for page in pages)
+
+
+def _extract_with_docling(pdf_path):
     from docling.document_converter import DocumentConverter, PdfFormatOption
     from docling.datamodel.base_models import InputFormat
     from docling.datamodel.pipeline_options import PdfPipelineOptions, AcceleratorOptions
@@ -46,6 +79,7 @@ def extract_text_from_pdf(pdf_path):
     pipeline_options.do_table_structure = True
     pipeline_options.accelerator_options = AcceleratorOptions(num_threads=8, device="cpu")
 
+    print("Falling back to Docling.....")
     converter = DocumentConverter(
         format_options={
             InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
@@ -370,6 +404,15 @@ def generate_quiz_task(quiz_id, file_key):
 
         source_text = extract_text_from_pdf(local_path)
         SourceText.objects.create(quiz=quiz, source_text=source_text)
+        try:
+            save_chunks_for_source_text(
+                source_text=SourceText.objects.get(quiz=quiz),
+                user=quiz.creator,
+                topic_name=quiz.quiz_topic,
+            )
+        except Exception as e:
+            print(f"[quiz {quiz_id}] chunking/embedding failed, continuing anyway: {e}")
+
     except Exception as e:
         quiz.status = "FAILED_API_ERROR"
         quiz.error_message = f"Couldn't read the uploaded document: {e}"

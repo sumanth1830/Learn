@@ -23,8 +23,11 @@
     <a href="?date={{ next_date|date:'Y-m-d' }}" class="btn btn-ghost btn-sm">Next day →</a>
   </div>
 
-  <a href="{% url 'quiz:current_affairs' %}?date={{ selected_date|date:'Y-m-d' }}" class="ca-articles-link">
-    ← Back to this day's digest
+  <a href="{% url 'quiz:current_affairs' %}?date={{ selected_date|date:'Y-m-d' }}" class="btn btn-ghost btn-sm ca-back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back to this day's digest
   </a>
 
   {% if grouped_articles %}

@@ -18,7 +18,8 @@ from pypdf import PdfReader, PdfWriter
 from ..forms import SignupForm
 from ..models import (
     FlashCard, Quiz, QuizAggregateMetrics, QuizFlag, QuizNodeCost, QuizReview,
-    NewsArticle, DigestNodeCost, DigestAggregateMetrics
+    NewsArticle, DigestNodeCost, DigestAggregateMetrics,
+    TopicsPreviewBrief, TopicsPreviewCost
 )
 
 AGENT_DISPLAY = {
@@ -292,6 +293,21 @@ def dashboard_view(request):
     difficulty_counts = Quiz.objects.filter(status="READY").values("difficulty").annotate(count=Count("id")).order_by(
         "difficulty")
 
+    # Topic Brief Metrics
+    topics_preview_summary = TopicsPreviewCost.objects.aggregate(
+        total_briefs=Count("id"),
+        avg_cost=Avg("cost"),
+        avg_time=Avg("total_time_seconds"),
+        avg_prompt_tokens=Avg("prompt_tokens"),
+        avg_completion_tokens=Avg("completion_tokens"),
+    )
+
+    briefs = TopicsPreviewBrief.objects.all()
+    total_questions_covered = sum(len(b.content) for b in briefs)
+    total_questions_skipped = sum(len(b.skipped_questions) for b in briefs)
+
+    rating_counts_briefs = TopicsPreviewBrief.objects.exclude(rating__isnull=True).values("rating").annotate(count=Count("id"))
+
     # --- Quiz growth: cumulative count by day, plus today's count ---------
     today = timezone.now().date()
     daily_counts = list(
@@ -374,6 +390,11 @@ def dashboard_view(request):
         "growth_points": growth_points,
         "growth_fill_points": growth_fill_points,
         "today_count": today_count,
+
+        "topics_preview_summary": topics_preview_summary,
+        "rating_counts_briefs": rating_counts_briefs,
+        "total_questions_covered": total_questions_covered,
+        "total_questions_skipped": total_questions_skipped,
     }
 
     return render(request, "quizmaker/dashboard.html", context)

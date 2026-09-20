@@ -164,6 +164,40 @@
       </div>
     </div>
 
+    <div class="dash-pipeline-group">
+      <h3 class="dash-pipeline-group-title">Topics to Preview pipeline</h3>
+
+      <div class="dash-mini-stats">
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">{{ topics_preview_summary.total_briefs|default:0 }}</span>
+          <span class="dash-mini-label">briefs generated</span>
+        </div>
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">${{ topics_preview_summary.avg_cost|floatformat:4|default:"0.0000" }}</span>
+          <span class="dash-mini-label">avg. cost per brief</span>
+        </div>
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">{{ topics_preview_summary.avg_time|floatformat:1|default:0 }}s</span>
+          <span class="dash-mini-label">avg. generation time</span>
+        </div>
+        <div class="dash-mini-stat">
+          <span class="dash-mini-number">{{ total_questions_covered }}</span>
+          <span class="dash-mini-label">questions explained</span>
+        </div>
+      </div>
+
+      <div class="dash-article-funnel">
+        <div class="dash-funnel-stat">
+          <span class="dash-stat-value">{{ total_questions_covered }}</span>
+          <span class="dash-stat-label">explained</span>
+        </div>
+        <span class="dash-funnel-arrow">→</span>
+        <div class="dash-funnel-stat">
+          <span class="dash-stat-value">{{ total_questions_skipped }}</span>
+          <span class="dash-stat-label">skipped (insufficient context)</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 3 & 4 side by side on wide screens -->

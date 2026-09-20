@@ -644,6 +644,25 @@ textarea:focus-visible,
   font-weight: 600;
 }
 
+.tp-ai-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  background: var(--color-bg-card-raised);
+  border: 1px solid var(--color-accent);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--color-accent-dark);
+}
+
+.tp-ai-disclaimer svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 /* Close the dropdown when clicking anywhere outside it - a tiny bit of
    JS is unavoidable for this specific behavior since <details> alone
    doesn't support click-outside-to-close. */

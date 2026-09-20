@@ -1,7 +1,9 @@
 from .public import (
     pdf_split_view, home, login_view, SignUp, dashboard_view,
 )
-from .profile import profile_view
+from .profile import (profile_view, topics_preview_detail_view,
+                      generate_topics_preview_view, topics_preview_list_view,
+                      rate_topics_preview_view)
 from .quiz_lifecycle import (
     QuizCreateView, quiz_processing_view, quiz_status_view, quiz_retry_view,
     quiz_resume_view, quiz_take_view, quiz_results_view,
@@ -25,5 +27,7 @@ __all__ = [
     "flashcard_topic_detail_view", "flashcard_topic_delete_view", "flashcard_review_submit_view",
     "flashcard_study_view", "create_flashcards_from_quiz",
     "QuizHistoryDelete", "quizzes_view",
-    "current_affairs_digest_view", "current_affairs_articles_view", "generate_digest_quiz_view"
+    "current_affairs_digest_view", "current_affairs_articles_view", "generate_digest_quiz_view",
+    "generate_topics_preview_view", "topics_preview_list_view", "topics_preview_detail_view",
+    "rate_topics_preview_view"
 ]

@@ -7,6 +7,7 @@
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
   <link rel="stylesheet" href="{% static 'quizmaker/profile.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/topics_preview.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -38,23 +39,37 @@
         </div>
       </div>
 
+      <div class="profile-feature-row">
+        <div class="card profile-topics-preview">
+          <svg class="profile-topics-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3v18M5 8l7-5 7 5M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h3>Topics to Preview</h3>
+          {% if can_generate_brief %}
+            <p>You've got enough recent misses to build a fresh review brief.</p>
+            <form method="post" action="{% url 'quiz:generate_topics_preview' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm">Generate my brief</button>
+            </form>
+          {% elif latest_brief %}
+            <p>Personalized briefs based on what you've been getting wrong.</p>
+            <a href="{% url 'quiz:topics_preview_list' %}" class="btn btn-sm">View your briefs</a>
+            <p class="profile-topics-progress">{{ uncovered_count }}/15 toward your next one</p>
+          {% else %}
+            <p>Personalized briefs based on what you've been getting wrong.</p>
+            <p class="profile-topics-progress">{{ uncovered_count }}/15 wrong answers so far</p>
+          {% endif %}
+        </div>
 
-
-      <div class="profile-coming-soon">
-        <svg class="profile-coming-soon-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 3v18M5 8l7-5 7 5M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <h3>Topics to Preview</h3>
-        <p>Personalized briefs based on what you've been getting wrong — coming soon.</p>
-      </div>
-
-      <div class="profile-coming-soon">
-        <svg class="profile-coming-soon-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.4"/>
-          <path d="M4 9h16M9 4v16" stroke="currentColor" stroke-width="1.4"/>
-        </svg>
-        <h3>Today's Current Affairs</h3>
-        <p>Daily quiz questions from real government press releases — coming soon.</p>
+        <div class="card profile-topics-preview">
+          <svg class="profile-topics-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M4 9h16M9 4v16" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+          <h3>Current Affairs</h3>
+          <p>Today's briefing, straight from PIB — grouped by ministry, with a quiz you can generate.</p>
+          <a href="{% url 'quiz:current_affairs' %}" class="btn btn-sm">View today's digest</a>
+        </div>
       </div>
     </div>
 

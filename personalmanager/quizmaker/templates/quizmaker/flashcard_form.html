@@ -59,8 +59,7 @@
         <button type="submit" class="btn">
           {% if form.instance.pk %}Save changes{% else %}Create flashcard{% endif %}
         </button>
-        {# Once quiz:flashcard_list exists, swap the href below for {% url 'quiz:flashcard_list' %} #}
-        <a href="#" class="link-quiet">Cancel</a>
+        <a href="{% url 'quiz:flashcard_list' %}" class="link-quiet">Cancel</a>
       </div>
     </form>
   </div>

@@ -170,3 +170,18 @@ class DigestState(TypedDict):
     relevance_usage: Optional[dict]
     filter_usage: Optional[dict]
     run_log: Optional[dict]
+
+
+class SkippedQuestion(BaseModel):
+    question_id: int
+    reason: str
+
+class QuestionExplanation(BaseModel):
+    question_id: int
+    question_text: str
+    explanation: str
+    chunk_ids: List[int]
+
+class TopicsPreviewBriefResult(BaseModel):
+    explanations: List[QuestionExplanation]
+    questions_skipped: List[SkippedQuestion]

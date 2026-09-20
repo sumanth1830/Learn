@@ -3,7 +3,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-
 load_dotenv()
 
 # CORRECTORS = {
@@ -60,5 +59,10 @@ group_evaluator_llm = ChatOpenAI(
 
 relevance_filter_llm = ChatOpenAI(
     model="openai/gpt-5.4-nano", temperature=0.0, max_tokens=3000, timeout=120,
+    api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
+)
+
+topics_preview_llm = ChatOpenAI(
+    model="google/gemini-2.5-flash-lite", temperature=0.2, timeout=180,
     api_key=os.getenv("OPENROUTER_API_KEY"), base_url="https://openrouter.ai/api/v1",
 )

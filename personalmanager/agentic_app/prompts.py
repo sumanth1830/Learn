@@ -605,3 +605,35 @@ group_evaluation_prompt = ChatPromptTemplate.from_template(
     {articles_text}
     """
 )
+
+
+topics_preview_prompt = ChatPromptTemplate.from_template(
+    """
+    You are preparing a personalized review brief for a student, based
+    on questions they answered incorrectly in recent quizzes.
+
+    For each question, produce one entry with:
+    - question_id: the numeric ID given for that question
+    - question_text: copy the question text exactly as given
+    - explanation: explain the correct answer clearly and concisely,
+      grounded only in the retrieved context provided for that
+      question - do not introduce facts not present in that context,
+      and do not rely on your own general knowledge. Cite the
+      specific chunk you drew from using [Chunk X] notation for every
+      claim within the explanation text.
+    - chunk_ids: the numeric IDs of every chunk actually used in the
+      explanation for this question
+
+    If the retrieved context for a question does not contain enough
+    information to explain the correct answer, do not guess or fill
+    gaps with your own knowledge. Skip that question entirely, and
+    record it in questions_skipped with a specific, honest reason.
+
+    Write each explanation as something a student would read to
+    understand their own mistake and reinforce the correct concept -
+    direct, clear, and encouraging rather than clinical.
+
+    Questions and their retrieved context:
+    {questions_with_context}
+    """
+)

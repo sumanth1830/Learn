@@ -1,0 +1,45 @@
+{% extends "./base.html" %}
+{% load static %}
+
+{% block title %}Your Topics to Preview — Marginal{% endblock %}
+{% block nav_progress %}is-active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'quizmaker/manage.css' %}">
+  <link rel="stylesheet" href="{% static 'quizmaker/topics_preview.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container topics-preview-page">
+
+  <div class="ca-header">
+    <span class="eyebrow">Topics to Preview</span>
+    <h1>Your review briefs</h1>
+  </div>
+
+  {% if briefs %}
+  <div class="tp-brief-list">
+    {% for brief in briefs %}
+    <a href="{% url 'quiz:topics_preview_detail' pk=brief.pk %}" class="card tp-brief-card">
+      <div class="tp-brief-meta">
+        <span class="tp-brief-date">{{ brief.created_at|date:"F j, Y" }}</span>
+        <span class="tp-brief-count">{{ brief.wrong_answers_covered.count }} question{{ brief.wrong_answers_covered.count|pluralize }} covered</span>
+        {% if brief.rating == "up" %}
+          <span class="tp-brief-rating is-up">👍</span>
+        {% elif brief.rating == "down" %}
+          <span class="tp-brief-rating is-down">👎</span>
+        {% endif %}
+      </div>
+      <p class="tp-brief-excerpt">{{ brief.plain_excerpt|truncatewords:30 }}</p>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No briefs yet</h3>
+    <p>Once you've got enough recent wrong answers, you can generate your first review brief from your profile.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

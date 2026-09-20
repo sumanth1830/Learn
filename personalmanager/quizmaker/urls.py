@@ -37,6 +37,12 @@ urlpatterns = [
     path("current-affairs/articles/", views.current_affairs_articles_view, name="current_affairs_articles"),
     path("current-affairs/<str:date>/generate-quiz/", views.generate_digest_quiz_view, name="generate_digest_quiz"),
 
+
+    # Topic Brief
+    path("topics-preview/", views.topics_preview_list_view, name="topics_preview_list"),
+    path("topics-preview/<int:pk>/", views.topics_preview_detail_view, name="topics_preview_detail"),
+    path("topics-preview/generate/", views.generate_topics_preview_view, name="generate_topics_preview"),
+    path("topics-preview/<int:pk>/rate/", views.rate_topics_preview_view, name="rate_topics_preview"),
     # Login
 
     # path("logout/", views.logout_view, name="logout"),

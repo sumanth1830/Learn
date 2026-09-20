@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 IST = ZoneInfo("Asia/Kolkata")
 
 
-def fetch_pib_feed():
+def fetch_pib_feed(max_retries=2):
     """
     Fetches PIB's official press-release RSS feed and returns a list of
     (title, link, prid) tuples. The feed itself only ever provides title
@@ -19,8 +19,16 @@ def fetch_pib_feed():
     inspection.
     """
     url = "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=1&reg=1"
-    response = requests.get(url, timeout=15)
-    response.raise_for_status()
+    # Fix for timeout exception
+    for attempt in range(max_retries + 1):
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            break
+        except requests.exceptions.RequestException as e:
+            if attempt == max_retries:
+                raise
+            print(f"[PIB feed] attempt {attempt + 1} failed: {e}, retrying...")
 
     soup = BeautifulSoup(response.content, "xml")
     items = []
