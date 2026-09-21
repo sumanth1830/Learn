@@ -135,9 +135,6 @@ class SignUp(CreateView):
 
 def dashboard_view(request):
     all_attempts = QuizAggregateMetrics.objects.all()
-    # Crashes can happen at any point in the graph - attributing them to
-    # one stage would be dishonest, so they're excluded from funnel/
-    # self-correction math and reported separately, plainly, instead.
     funnel_base = all_attempts.exclude(end_reason__startswith="crashed_")
     total_attempts = all_attempts.count()
     total_funnel = funnel_base.count()
@@ -164,7 +161,6 @@ def dashboard_view(request):
         v=Avg("total_time_seconds")
     )["v"] or 0
 
-    # --- 2. Funnel ----------------------------------------------------
     guardrail_blocked = funnel_base.filter(end_reason="guardrail_blocked").count()
     structural_failed = funnel_base.filter(end_reason="structural checks exhausted").count()
     safety_failed = funnel_base.filter(end_reason="safety check failed").count()
@@ -181,9 +177,7 @@ def dashboard_view(request):
         {"label": "Approved", "count": approved_count},
     ]
 
-    # --- 3. Self-correction narrative --------------------------------------
-    # Same reasoning as approved_count above - both need the quiz to have
-    # actually reached the user, not just been approved by the graph.
+
     first_pass_count = funnel_base.filter(
         structural_attempts=1, evaluator_attempts=1,
         end_reason="approved", quiz__status="READY",
@@ -200,7 +194,7 @@ def dashboard_view(request):
     failed_rate = round((failed_count / total_funnel * 100) if total_funnel else 0, 1)
     designed_failed_rate = round((designed_failed_count / total_funnel * 100) if total_funnel else 0, 1)
 
-    # --- 4. Safety table ----------------------------------------------
+    # Safety Table
     guardrail_categories = (
         funnel_base.exclude(guardrail_category__in=["", "passed"])
         .values("guardrail_category").annotate(count=Count("id")).order_by("-count")
@@ -210,7 +204,7 @@ def dashboard_view(request):
         .values("safety_category").annotate(count=Count("id")).order_by("-count")
     )
 
-    # --- 5. Pipeline with real per-node cost/time/tokens -----------------
+    # Per Node metrics
     node_stats_raw = {
         row["agent"]: row
         for row in QuizNodeCost.objects.values("agent").annotate(
@@ -235,7 +229,7 @@ def dashboard_view(request):
         })
 
     # Per-node digest pipeline stats
-    # Article funnel
+    # News Article
     total_ingested = NewsArticle.objects.filter(digest_included__isnull=False).count()
     total_included = NewsArticle.objects.filter(digest_included=True).count()
     total_excluded = NewsArticle.objects.filter(digest_included=False).count()
@@ -263,7 +257,7 @@ def dashboard_view(request):
         avg_time=Avg("total_time_seconds"),
     )
 
-    # --- 6. Quality signals ---------------------------------------------
+
     review_qs = QuizReview.objects.all()
     review_count = review_qs.count()
     avg_rating = review_qs.aggregate(v=Avg("rating"))["v"] or 0
@@ -286,7 +280,7 @@ def dashboard_view(request):
     flagged_quiz_count = QuizFlag.objects.values("quiz").distinct().count()
     flagged_quiz_rate = round((flagged_quiz_count / total_quiz_count * 100) if total_quiz_count else 0, 1)
 
-    # --- 7. Footer counts -----------------------------------------------
+    # Footer Metrics
     total_registrations = User.objects.count()
     total_flashcards = FlashCard.objects.count()
     avg_questions = round(Quiz.objects.filter(status="READY").aggregate(v=Avg("max_questions"))["v"] or 0, 1)

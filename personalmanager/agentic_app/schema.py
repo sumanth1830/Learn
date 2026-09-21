@@ -5,11 +5,6 @@ from typing import Annotated, List, Optional, TypedDict, Literal
 
 
 class QuizDetails(BaseModel):
-    """
-    A plain, typed snapshot of the fields the graph actually needs from the
-    Django Quiz model - built once in tasks.py, before the graph starts.
-    The graph never touches the live Django model itself, only this.
-    """
     quiz_topic: str
     exam_name: str
     difficulty: Literal["EASY", "MED", "HARD"]

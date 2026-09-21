@@ -135,9 +135,10 @@ def extract_trace_cost_breakdown(trace):
 
 def _fetch_trace_data(quiz):
     """
-    Shared by every entry point that runs graph.invoke() - fresh
-    creation, retry, and resume all need this identical logic.
-    Returns (trace_id, node_breakdown, total_cost, total_time_seconds).
+    Fetches trace_id, node_breakdown, total_cost, total_time_seconds
+    from the trace in the mlflow
+
+    This info is used later for the dashboard metrics
     """
     trace_id = None
     node_breakdown = []
@@ -156,7 +157,7 @@ def _fetch_trace_data(quiz):
 
 def _finalize_quiz_generation(quiz, final_state, trace_id, node_breakdown, total_cost, total_time_seconds, attempt_id):
     """
-    Shared tail logic used by every entry point (fresh creation, retry,
+    Shared end logic used by every entry point (fresh creation, retry,
     resume) once final_state is in hand - writes the metrics tables,
     branches on end_reason, persists questions if approved.
     """
@@ -374,8 +375,7 @@ def _run_quiz_generation(quiz, source_text):
 def generate_quiz_task(quiz_id, file_key):
     """
     Fresh quiz creation - downloads the PDF from bucket storage in
-    production (Django and this Celery worker run in separate containers
-    with no shared filesystem). In local dev, both processes run on the
+    production. In local dev, both processes run on the
     same machine, so file_key is just a plain local path already on disk.
     """
     print("Generating Quiz....")

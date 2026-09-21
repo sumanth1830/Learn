@@ -7,6 +7,15 @@ from ..models import Question, Quiz, QuizFlag, QuizReview
 
 @login_required
 def quiz_review_submit_view(request, pk):
+    """
+    This view is part of quiz results view
+    where the option to give a rating to the quiz is shown
+    to the user
+
+    :param request: Request Object
+    :param pk: User primary key
+    :return: JsonResponse
+    """
     quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
 
     if request.method != "POST":
@@ -28,6 +37,14 @@ def quiz_review_submit_view(request, pk):
 
 @login_required
 def quiz_flag_submit_view(request, pk):
+    """
+    This view aids the user in flagging the quiz items (question, answer, hint, explanation)
+    which are wrong factually or contextually
+
+    :param request: Request Object
+    :param pk: User primary key
+    :return:
+    """
     quiz = get_object_or_404(Quiz, pk=pk)
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request."}, status=405)

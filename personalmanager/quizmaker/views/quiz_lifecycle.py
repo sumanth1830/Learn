@@ -18,6 +18,8 @@ from ..forms import QuizCreationForm
 from ..models import Quiz, QuizAttemptAnswer, QuizFlag, QuizHistory, QuizReview, UserActivity
 from ..tasks import generate_quiz_task, resume_quiz_task, retry_quiz_task
 
+
+# To limit the PDF file content
 MAX_PDF_PAGES = 15
 
 
@@ -27,6 +29,11 @@ class QuizCreateView(LoginRequiredMixin, CreateView):
     template_name = "quizmaker/quiz_form.html"
 
     def get_initial(self):
+        """
+        To handle the content during Revise and Resubmit flow
+        and prefill the quiz details in the Quiz Form,
+        skipping the description and tips for generation fields
+        """
         initial = super().get_initial()
         from_quiz_id = self.request.GET.get("from_quiz")
         if from_quiz_id:
@@ -46,9 +53,15 @@ class QuizCreateView(LoginRequiredMixin, CreateView):
                            getattr(getattr(prior_quiz, "aggregate_metrics", None), "safety_category", "")
                 if category in ("off_topic", "manipulative"):
                     initial.pop("tips_for_quiz_creation", None)
+                    initial.pop("description", None)
         return initial
 
     def form_valid(self, form):
+        """
+        Validating the form
+        Making sure the PDF files are not large enough
+        to handle cost and context of llm models
+        """
         pdf_file = self.request.FILES.get("pdf_file")
         if not pdf_file:
             form.add_error(None, "Please attach a PDF for quiz generation.")
@@ -58,7 +71,7 @@ class QuizCreateView(LoginRequiredMixin, CreateView):
             pdf_file.seek(0)
             with pdfplumber.open(pdf_file) as pdf:
                 page_count = len(pdf.pages)
-            pdf_file.seek(0)  # reset pointer so it can still be saved to disk below
+            pdf_file.seek(0)
         except Exception:
             form.add_error(None, "We couldn't read that PDF — it may be corrupted.")
             return self.form_invalid(form)
@@ -81,11 +94,8 @@ class QuizCreateView(LoginRequiredMixin, CreateView):
         quiz.status = "PENDING"
         quiz.save()
 
-        # Production: Django and the Celery worker run in separate
-        # containers with no shared filesystem, so the file has to go to
-        # real object storage. Local dev: both run on the same machine,
-        # so plain disk works fine and avoids needing bucket credentials
-        # just to develop.
+        # Production: Needs bucket credentials as Django and Celery work in separate containers
+        # Development: This works fine
         if os.getenv("AWS_ENDPOINT_URL"):
             s3_client = boto3.client("s3", endpoint_url=os.getenv("AWS_ENDPOINT_URL"))
             file_key = f"tmp_uploads/{uuid.uuid4()}_{pdf_file.name}"
@@ -102,12 +112,18 @@ class QuizCreateView(LoginRequiredMixin, CreateView):
 
 @login_required
 def quiz_processing_view(request, pk):
+    """
+    Processing Quiz Page displayed while Celery worker runs in the background
+    """
     quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
     return render(request, "quizmaker/quiz_processing.html", {"quiz": quiz})
 
 
 @login_required
 def quiz_status_view(request, pk):
+    """
+    This view comes into effect when there is an error/problem in the Quiz Generation
+    """
     quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
     data = {"status": quiz.status}
     if quiz.status == "READY":
@@ -122,6 +138,11 @@ def quiz_status_view(request, pk):
 
 @login_required
 def quiz_retry_view(request, pk):
+    """
+    To initiate the retry quiz task and redo the quiz generation
+    when the earlier attempt hit the limits on either Structural or
+    Evaluator
+    """
     quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
 
     if quiz.status != "FAILED_EXHAUSTED":
@@ -134,6 +155,10 @@ def quiz_retry_view(request, pk):
 
 @login_required
 def quiz_resume_view(request, pk):
+    """
+    To resume the quiz, if there is an API error during the quiz generation
+    Checkpointer comes into picture here
+    """
     quiz = get_object_or_404(Quiz, pk=pk, creator=request.user)
     if quiz.status != "FAILED_API_ERROR":
         messages.error(request, "This quiz isn't in a state that can be resumed.")
@@ -144,6 +169,10 @@ def quiz_resume_view(request, pk):
 
 @login_required
 def quiz_take_view(request, pk):
+    """
+    Quiz is presented to the user in this view
+    Logged info on Quiz History, Quiz Attempt Answer, User Activity models
+    """
     quiz = get_object_or_404(Quiz, pk=pk)
 
     is_digest_quiz = hasattr(quiz, "source_digest")
@@ -197,6 +226,13 @@ def quiz_take_view(request, pk):
 
 @login_required
 def quiz_results_view(request, pk):
+    """
+    View to display the user results, ability to flag questions
+    Correct Answer with explanation to the User.
+    justcompleted=1 is used as a query param to differentiate and provide
+    option to show user rating view
+    It's only shown during first time the user visits the quiz results page
+    """
     quiz_history = get_object_or_404(QuizHistory, pk=pk, user=request.user)
     quiz = quiz_history.quiz
 
