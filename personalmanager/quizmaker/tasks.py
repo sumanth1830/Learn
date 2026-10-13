@@ -2,8 +2,6 @@ import os
 import time
 import boto3
 import tempfile
-
-import mlflow
 from celery import shared_task
 
 from .models import (
@@ -140,6 +138,8 @@ def _fetch_trace_data(quiz):
 
     This info is used later for the dashboard metrics
     """
+    import mlflow
+
     trace_id = None
     node_breakdown = []
     total_cost = 0.0

@@ -1,10 +1,14 @@
 import os
+import sys
 from celery import Celery
 import billiard
 from celery.schedules import crontab
 
-billiard.context._force_start_method('spawn')
-os.environ['FORKED_BY_MULTIPROCESSING'] = '1'
+
+if sys.platform in ("win32", "darwin"):
+    billiard.context._force_start_method('spawn')
+    os.environ['FORKED_BY_MULTIPROCESSING'] = '1'
+
 
 for var in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS",
             "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"):
@@ -17,18 +21,23 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.conf.worker_max_tasks_per_child = 50
 app.conf.worker_max_memory_per_child = 1000000
+app.conf.worker_proc_alive_timeout = 60
+
 app.conf.beat_schedule = {
     "cleanup-stuck-quizzes": {
         "task": "quizmaker.tasks.cleanup_stuck_quizzes",
-        "schedule": crontab(minute="*/30"),
+        "schedule": crontab(minute=0),
+        "options": {"expires": 55 * 60},
     },
     # PIB Ingestion
     "poll-pib-feed": {
         "task": "quizmaker.tasks.poll_pib_feed_task",
         "schedule": crontab(minute="*/30"),
+        "options": {"expires": 25 * 60},
     },
     "generate-daily-digest": {
         "task": "quizmaker.digest_tasks.generate_daily_digest_task",
         "schedule": crontab(hour=18, minute=0),
+        "options": {"expires": 3 * 60 * 60},
     },
 }

@@ -1,6 +1,5 @@
 import re
 import tiktoken
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from quizmaker.models import SourceChunk
 from openai import OpenAI
 import os
@@ -10,16 +9,25 @@ embedding_client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
 )
 
+_splitter = None
+
 
 def count_tokens(text: str) -> int:
     encoding = tiktoken.encoding_for_model("text-embedding-3-small")
     return len(encoding.encode(text))
 
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,
-    chunk_overlap=50,
-    length_function=count_tokens,
-)
+
+def get_splitter():
+    global _splitter
+    if _splitter is None:
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+        _splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500,
+            chunk_overlap=50,
+            length_function=count_tokens,
+        )
+    return _splitter
 
 
 def embed_chunks(chunk_texts: list[str]) -> list[list[float]]:
@@ -130,7 +138,7 @@ def build_chunks(sections):
             else:
                 combined_header, combined_content = section[0], section[1]
 
-            split_pieces = splitter.split_text(combined_content)
+            split_pieces = get_splitter().split_text(combined_content)
             for piece in split_pieces:
                 finalized_chunks.append([combined_header, piece, section[2]])
 
