@@ -66,4 +66,6 @@ urlpatterns = [
     # Utility Feature links
     path("pdf-split/", views.pdf_split_view, name="pdf_split"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
+
+    path("game-test/", views.game_test_view, name="game_test"),
 ]

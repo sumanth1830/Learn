@@ -16,6 +16,7 @@ from .flashcards import (
 )
 from .history import QuizHistoryDelete, quizzes_view
 from .current_affairs import current_affairs_digest_view, current_affairs_articles_view, generate_digest_quiz_view
+from .game_test import game_test_view
 
 
 __all__ = [
@@ -29,5 +30,6 @@ __all__ = [
     "QuizHistoryDelete", "quizzes_view",
     "current_affairs_digest_view", "current_affairs_articles_view", "generate_digest_quiz_view",
     "generate_topics_preview_view", "topics_preview_list_view", "topics_preview_detail_view",
-    "rate_topics_preview_view"
+    "rate_topics_preview_view",
+    "game_test_view",
 ]
