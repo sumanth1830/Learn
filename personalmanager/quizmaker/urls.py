@@ -68,4 +68,13 @@ urlpatterns = [
     path("dashboard/", views.dashboard_view, name="dashboard"),
 
     path("game-test/", views.game_test_view, name="game_test"),
+
+    # Unity game (Pitfall of Forgetting) and its JSON API
+    path("game/", views.game_view, name="game"),
+    path("api/game/state/", views.game_state_view, name="game_state"),
+    path("api/game/quiz/<int:pk>/", views.game_quiz_view, name="game_quiz"),
+    path("api/game/quiz/<int:pk>/submit/", views.game_quiz_submit_view, name="game_quiz_submit"),
+    path("api/game/flashcards/", views.game_flashcards_view, name="game_flashcards"),
+    path("api/game/flashcard/<int:pk>/review/", views.game_flashcard_review_view, name="game_flashcard_review"),
+    path("api/game/reset/", views.game_reset_view, name="game_reset"),
 ]

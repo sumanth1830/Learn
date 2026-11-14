@@ -17,6 +17,10 @@ from .flashcards import (
 from .history import QuizHistoryDelete, quizzes_view
 from .current_affairs import current_affairs_digest_view, current_affairs_articles_view, generate_digest_quiz_view
 from .game_test import game_test_view
+from .game_api import (
+    game_view, game_state_view, game_quiz_view, game_quiz_submit_view,
+    game_flashcards_view, game_flashcard_review_view, game_reset_view,
+)
 
 
 __all__ = [
@@ -32,4 +36,6 @@ __all__ = [
     "generate_topics_preview_view", "topics_preview_list_view", "topics_preview_detail_view",
     "rate_topics_preview_view",
     "game_test_view",
+    "game_view", "game_state_view", "game_quiz_view", "game_quiz_submit_view",
+    "game_flashcards_view", "game_flashcard_review_view", "game_reset_view",
 ]
