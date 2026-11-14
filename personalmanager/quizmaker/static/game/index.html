@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>QuizBossBattle</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0e0c14; overflow: hidden; }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: #0e0c14; }
+    #loading { position: absolute; inset: 0; display: flex; align-items: center;
+               justify-content: center; color: #fcebd2; font: 600 18px system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="loading">Loading… <span id="pct">0</span>%</div>
+  <script src="Build/BossBattles.loader.js"></script>
+  <script>
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+      dataUrl: "Build/BossBattles.data",
+      frameworkUrl: "Build/BossBattles.framework.js",
+      codeUrl: "Build/BossBattles.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "QuizBossBattle",
+      productVersion: "1.0",
+      matchWebGLToCanvasSize: true,
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
+    }, function (progress) {
+      document.getElementById("pct").textContent = Math.round(progress * 100);
+    }).then(function () {
+      document.getElementById("loading").remove();
+    }).catch(function (err) {
+      document.getElementById("loading").textContent = err;
+    });
+  </script>
+</body>
+</html>
