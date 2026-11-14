@@ -20,7 +20,7 @@ from ..tasks import generate_quiz_task, resume_quiz_task, retry_quiz_task
 
 
 # To limit the PDF file content
-MAX_PDF_PAGES = 15
+MAX_PDF_PAGES = 20
 
 
 class QuizCreateView(LoginRequiredMixin, CreateView):
