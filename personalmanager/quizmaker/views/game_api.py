@@ -138,7 +138,7 @@ def game_state_view(request):
             "num_overdue": overdue,
             "overdue_fraction": round(fraction, 3),
             "area_base_health": round(base, 3),
-            "area_health": round(max(0.0, base - MAX_NEGLECT_DRAIN * fraction), 3),
+            "area_health": round(base * (1.0 - MAX_NEGLECT_DRAIN * fraction), 3),
             "quizzes": quiz_list,
         })
 

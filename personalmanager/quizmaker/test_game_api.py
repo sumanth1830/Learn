@@ -116,7 +116,7 @@ class GameApiTests(TestCase):
         ch = self.client.get(reverse("quiz:game_state"), {"sim_days": 3}).json()["chapters"][0]
         # 2 of 4 cards overdue at +3 days: 0.70 - 0.40 * 0.5 = 0.50
         self.assertAlmostEqual(ch["area_base_health"], 0.70, places=3)
-        self.assertAlmostEqual(ch["area_health"], 0.35, places=3)
+        self.assertAlmostEqual(ch["area_health"], 0.455, places=3)
         self.assertEqual(ch["quizzes"][0]["best_score"], 0)
         self.assertFalse(ch["quizzes"][0]["perfect"])
 
