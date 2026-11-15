@@ -308,7 +308,8 @@ def game_area_repair_view(request, key):
         area, _ = VillageArea.objects.select_for_update().get_or_create(
             user=request.user, chapter_key=key)
         if area.base_health >= 1.0:
-            return JsonResponse({"error": "This area is already fully repaired."}, status=400)
+            return JsonResponse({"error": "No battle damage to repair here. "
+                                          "Review the cards to cure neglect."}, status=400)
         if profile.coins < REPAIR_COST:
             return JsonResponse({"error": f"Repairs cost {REPAIR_COST} coins."}, status=400)
         profile.coins -= REPAIR_COST

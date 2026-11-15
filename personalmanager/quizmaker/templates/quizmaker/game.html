@@ -5,9 +5,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pitfall of Forgetting</title>
-  <style>html,body{margin:0;height:100%;background:#0e0c14;overflow:hidden}</style>
+    <style>
+    html,body{margin:0;height:100%;background:#0e0c14;overflow:hidden}
+    #rotate{display:none;position:fixed;inset:0;z-index:10;background:#0e0c14;color:#fcebd2;
+            font:600 20px system-ui,sans-serif;align-items:center;justify-content:center;
+            flex-direction:column;gap:14px;text-align:center;padding:24px}
+    #rotate .icon{font-size:56px}
+    /* phones held upright: ask to rotate */
+    @media (orientation: portrait) and (max-width: 900px){ #rotate{display:flex} }
+  </style>
 </head>
 <body>
+  <div id="rotate"><div class="icon">⟳</div>Turn your phone sideways to play</div>
   <iframe src="{% static 'game/index.html' %}"
           style="width:100vw;height:100vh;border:0;display:block"
           allow="autoplay; fullscreen"></iframe>
