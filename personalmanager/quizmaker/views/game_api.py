@@ -28,7 +28,8 @@ MAX_SIM_DAYS = 60
 CHAPTER_RE = re.compile(r"\bch(?:apter)?\.?\s*(\d+)", re.IGNORECASE)
 # Game economy (the Unity battle uses the same numbers for its animation;
 # the server's result is the one that counts).
-COINS_PER_RIGHT = 10
+COINS_PER_RIGHT = 2        # every right answer, every time
+IMPROVEMENT_BONUS = 8      # extra per right answer above your previous best on this quiz
 PERFECT_BONUS = 30
 MAX_BATTLE_LOSS = 0.30     # an all-wrong battle costs this much area health at strength 1
 BLOCKED_HIT = 0.01         # area health lost per right answer at strength 1
@@ -225,7 +226,8 @@ def game_quiz_submit_view(request, pk):
         history.save(update_fields=["num_correct", "num_wrong"])
 
         # Coins only for beating your previous best on this quiz (no farming).
-        coins_earned = max(0, num_correct - prev_best) * COINS_PER_RIGHT
+        coins_earned = (num_correct * COINS_PER_RIGHT
+                        + max(0, num_correct - prev_best) * IMPROVEMENT_BONUS)
         if num_correct == total and prev_best < total:
             coins_earned += PERFECT_BONUS
 

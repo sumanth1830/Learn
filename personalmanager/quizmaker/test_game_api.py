@@ -100,10 +100,10 @@ class GameApiTests(TestCase):
         first = self._submit(1)                     # 1/2 right, first try
         self.assertEqual(first["coins_earned"], 10)
         again = self._submit(1)                     # same score: nothing new
-        self.assertEqual(again["coins_earned"], 0)
+        self.assertEqual(again["coins_earned"], 2)
         perfect = self._submit(2)                   # +1 right and a perfect run
-        self.assertEqual(perfect["coins_earned"], 10 + 30)
-        self.assertEqual(GameProfile.objects.get(user=self.user).coins, 50)
+        self.assertEqual(perfect["coins_earned"], 2 * 2 + 8 + 30)
+        self.assertEqual(GameProfile.objects.get(user=self.user).coins, 10 + 2 + 42)
 
     def test_wrong_answers_damage_the_area(self):
         result = self._submit(0)                    # both wrong, no cards overdue: strength 1

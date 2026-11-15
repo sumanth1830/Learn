@@ -67,8 +67,6 @@ urlpatterns = [
     path("pdf-split/", views.pdf_split_view, name="pdf_split"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
 
-    path("game-test/", views.game_test_view, name="game_test"),
-
     # Unity game (Pitfall of Forgetting) and its JSON API
     path("game/", views.game_view, name="game"),
     path("api/game/state/", views.game_state_view, name="game_state"),
