@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Answer, FlashCard, Question, Quiz, QuizAttemptAnswer, QuizHistory
+from .models import Answer, FlashCard, Question, Quiz, QuizAttemptAnswer, QuizHistory, GameProfile, VillageArea
 from .views.game_api import _chapter_key
 
 TOPIC = "Ch 6: The Beginnings of Indian Civilisation"
@@ -87,3 +87,48 @@ class GameApiTests(TestCase):
     def test_login_required(self):
         self.client.logout()
         self.assertEqual(self.client.get(reverse("quiz:game_state")).status_code, 302)
+
+    def _submit(self, right_count):
+        answers = []
+        for i, (q, a) in enumerate(self.questions):
+            answers.append({"question_id": q.pk, "answer_id": (a[1] if i < right_count else a[0]).pk})
+        return self.client.post(reverse("quiz:game_quiz_submit", args=[self.quiz.pk]),
+                                json.dumps({"answers": answers}),
+                                content_type="application/json").json()
+
+    def test_coins_only_for_improvement(self):
+        first = self._submit(1)                     # 1/2 right, first try
+        self.assertEqual(first["coins_earned"], 10)
+        again = self._submit(1)                     # same score: nothing new
+        self.assertEqual(again["coins_earned"], 0)
+        perfect = self._submit(2)                   # +1 right and a perfect run
+        self.assertEqual(perfect["coins_earned"], 10 + 30)
+        self.assertEqual(GameProfile.objects.get(user=self.user).coins, 50)
+
+    def test_wrong_answers_damage_the_area(self):
+        result = self._submit(0)                    # both wrong, no cards overdue: strength 1
+        self.assertAlmostEqual(result["area_loss"], 0.30, places=3)
+        area = VillageArea.objects.get(user=self.user, chapter_key="ch6")
+        self.assertAlmostEqual(area.base_health, 0.70, places=3)
+
+    def test_state_area_health_combines_damage_and_neglect(self):
+        self._submit(0)                                   # base health 1.0 -> 0.70
+        ch = self.client.get(reverse("quiz:game_state"), {"sim_days": 3}).json()["chapters"][0]
+        # 2 of 4 cards overdue at +3 days: 0.70 - 0.40 * 0.5 = 0.50
+        self.assertAlmostEqual(ch["area_base_health"], 0.70, places=3)
+        self.assertAlmostEqual(ch["area_health"], 0.50, places=3)
+        self.assertEqual(ch["quizzes"][0]["best_score"], 0)
+        self.assertFalse(ch["quizzes"][0]["perfect"])
+
+
+    def test_repair_spends_coins_and_caps_at_full(self):
+        self._submit(0)                                   # area 1.0 -> 0.70, earns 0 coins
+        url = reverse("quiz:game_area_repair", args=["ch6"])
+        self.assertEqual(self.client.post(url).status_code, 400)   # no coins yet
+        GameProfile.objects.filter(user=self.user).update(coins=25)
+        result = self.client.post(url).json()
+        self.assertEqual(result["coins_total"], 15)
+        self.assertAlmostEqual(result["area_base_health"], 0.75, places=3)
+        self.client.post(reverse("quiz:game_reset"))
+        self.assertEqual(self.client.post(url).status_code, 400)   # full after reset
+        self.assertEqual(GameProfile.objects.get(user=self.user).coins, 100)

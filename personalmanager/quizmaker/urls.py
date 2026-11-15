@@ -76,5 +76,6 @@ urlpatterns = [
     path("api/game/quiz/<int:pk>/submit/", views.game_quiz_submit_view, name="game_quiz_submit"),
     path("api/game/flashcards/", views.game_flashcards_view, name="game_flashcards"),
     path("api/game/flashcard/<int:pk>/review/", views.game_flashcard_review_view, name="game_flashcard_review"),
+    path("api/game/area/<str:key>/repair/", views.game_area_repair_view, name="game_area_repair"),
     path("api/game/reset/", views.game_reset_view, name="game_reset"),
 ]

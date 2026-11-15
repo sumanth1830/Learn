@@ -11,6 +11,7 @@ from .engagement import UserActivity
 from .feedback import QuizReview, QuizFlag
 from .news import NewsArticle, DailyDigest, DigestNodeCost, DigestAggregateMetrics
 from .rag import SourceChunk, TopicsPreviewBrief, TopicsPreviewCost
+from .game import GameProfile, VillageArea
 
 __all__ = [
     "TimeStampedModel",
@@ -22,5 +23,6 @@ __all__ = [
     "QuizReview", "QuizFlag", "QuizTrace",
     "UserActivity",
     "NewsArticle", "DailyDigest", "DigestNodeCost", "DigestAggregateMetrics",
-    "SourceChunk", "TopicsPreviewBrief", "TopicsPreviewCost"
+    "SourceChunk", "TopicsPreviewBrief", "TopicsPreviewCost",
+    "GameProfile", "VillageArea",
 ]

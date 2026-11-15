@@ -20,6 +20,7 @@ from .game_test import game_test_view
 from .game_api import (
     game_view, game_state_view, game_quiz_view, game_quiz_submit_view,
     game_flashcards_view, game_flashcard_review_view, game_reset_view,
+    game_area_repair_view
 )
 
 
@@ -37,5 +38,5 @@ __all__ = [
     "rate_topics_preview_view",
     "game_test_view",
     "game_view", "game_state_view", "game_quiz_view", "game_quiz_submit_view",
-    "game_flashcards_view", "game_flashcard_review_view", "game_reset_view",
+    "game_flashcards_view", "game_flashcard_review_view", "game_reset_view", "game_area_repair_view"
 ]
